@@ -99,19 +99,7 @@ const canTransfer = computed(() => {
 })
 
 function goBack() {
-  // Проверяем, находимся ли мы внутри iframe
-  const isInIframe = window.parent !== window
-
-  if (isInIframe) {
-    // Отправляем сообщение host приложению о необходимости навигации назад
-    window.parent.postMessage({
-      type: 'NAVIGATE_BACK',
-      source: 'secondapp'
-    }, '*')
-  } else {
-    // Если не в iframe, используем обычную навигацию
-    history.back()
-  }
+  history.back()
 }
 
 function getFee(): number {

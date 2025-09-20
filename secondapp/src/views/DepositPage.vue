@@ -43,7 +43,7 @@
         <div class="actions">
           <button class="btn btn-primary">Open Deposit</button>
           <button class="btn btn-secondary">View Rates</button>
-          <button class="btn btn-transfer" @click="goToTransfer">Transfer Funds</button>
+          <router-link class="btn btn-transfer" to="/bank/deposit/transfer">Transfer Funds</router-link>
         </div>
       </div>
     </div>
@@ -51,29 +51,12 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-
-const router = useRouter()
 
 function goBack() {
-  // Проверяем, находимся ли мы внутри iframe
-  const isInIframe = window.parent !== window
-
-  if (isInIframe) {
-    // Отправляем сообщение host приложению о необходимости навигации назад
-    window.parent.postMessage({
-      type: 'NAVIGATE_BACK',
-      source: 'secondapp'
-    }, '*')
-  } else {
-    // Если не в iframe, используем обычную навигацию
-    history.back()
-  }
+  history.back()
 }
 
-function goToTransfer() {
-  router.push('/bank/deposit/transfer')
-}
+
 </script>
 
 <style scoped>

@@ -27,7 +27,12 @@ const router = createRouter({
 
 // On any router change, postMessage to parent (кроме случаев, когда навигация пришла с хоста)
 router.afterEach((to, from) => {
-  if (to.fullPath === from.fullPath) {
+  console.log('ROUTER AFTER EACH', to.fullPath, from.fullPath)
+
+  const toPath = to.fullPath.includes(from.fullPath) && from.fullPath.length + 1 === to.fullPath.length;
+  const fromPath = from.fullPath.includes(from.fullPath) && to.fullPath.length + 1 === from.fullPath.length;
+
+  if (toPath || fromPath || to.fullPath === from.fullPath) {
     history.back()
   }
 

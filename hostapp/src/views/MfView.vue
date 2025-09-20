@@ -46,21 +46,20 @@ const POP_SUPPRESS_WINDOW = 800 // мс
 
 function buildIframeSrc(mfParam: string) {
 
+  console.log("mfParam", mfParam)
 
   if (Array.isArray(mfParam)) {
-    mfParam = mfParam.join('/')
+    mfParam = mfParam.filter(Boolean).join('/')
   }
 
   // decode base path passed in param — adapt to your MF URL
-  const base = decodeURIComponent(mfParam || '/gold/')
+  const base = decodeURIComponent(mfParam || '')
 
-  // Например, mf располагается на другом домене или порту
-  // в dev может быть http://localhost:5173/
-  return base.startsWith('http') ? base : `http://localhost:5173/bank/${base}`
+  return base ? `http://localhost:5173/bank/gold/${base}` : `http://localhost:5173/bank/gold`
 }
 
 // set src initially
-const iframeSrc = ref<string | null>(buildIframeSrc((route.params.mfId as string) || '/gold/'))
+const iframeSrc = ref<string | null>(buildIframeSrc((route.params.mfId as string) || ''))
 
 function sendToMf(msg: Msg) {
   const win = iframeRef.value?.contentWindow

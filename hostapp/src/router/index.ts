@@ -5,7 +5,7 @@ import MfView from '@/views/MfView.vue'
 const routes = [
   { path: '/', name: 'Home', component: HomePage },
   // маршруты, которые будут отражать состояния микрофронтенда
-  { path: '/bank/:mfId(.*)*', name: 'MF', component: MfView },
+  { path: '/bank/gold:mfId(.*)*', name: 'MF', component: MfView },
 ];
 
 const router = createRouter({
