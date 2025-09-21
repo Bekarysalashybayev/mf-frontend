@@ -3,12 +3,23 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
+import federation from '@originjs/vite-plugin-federation'
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
     vueDevTools(),
+    federation({
+      name: 'second-app',
+      filename: 'remoteEntry.js',
+      exposes: {
+        './DepositPage': './src/views/DepositPage.vue',
+        './DepositTransferPage': './src/views/DepositTransferPage.vue',
+        './router': './src/router/index.ts'
+      },
+      shared: ['vue', 'vue-router', 'pinia']
+    }),
   ],
   resolve: {
     alias: {
@@ -16,12 +27,13 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5174,
+    port: 3003,
     host: true,
-    cors: true,
     headers: {
-      'X-Frame-Options': 'ALLOWALL',
-      'Content-Security-Policy': "frame-ancestors *;"
+      'Access-Control-Allow-Origin': '*',
     }
+  },
+  build: {
+    target: 'esnext'
   }
 })

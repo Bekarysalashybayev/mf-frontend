@@ -9,7 +9,7 @@
       </header>
 
       <div class="services-grid">
-        <div class="service-card" @click="navigateTo('/app1/')">
+        <div class="service-card" @click="navigateTo('/deposit')">
           <div class="service-icon deposit-icon">💰</div>
           <h3>Депозиты</h3>
           <p>Управляйте вашими депозитными счетами и получайте проценты</p>
@@ -19,7 +19,7 @@
           <button class="service-btn">Перейти к депозитам</button>
         </div>
 
-        <div class="service-card" @click="navigateTo('/app2/')">
+        <div class="service-card" @click="navigateTo('/gold')">
           <div class="service-icon gold-icon">🥇</div>
           <h3>Золото</h3>
           <p>Инвестируйте в драгоценные металлы и диверсифицируйте портфель</p>
@@ -57,8 +57,8 @@ import MainLayout from '@/components/MainLayout.vue'
 
 const router = useRouter()
 
-function navigateTo(path: string) {
-  router.push({ name: 'MF', params: { mfId: encodeURIComponent(path) }});
+const navigateTo = (path: string) => {
+  router.push(path)
 }
 </script>
 

@@ -1,6 +1,6 @@
 <template>
   <div class="deposit-transfer-page">
-    <button class="back-btn" @click="goBack">← Назад</button>
+    <button class="back-btn" @click="goBack">← Назад к Deposits</button>
 
     <header class="page-header">
       <h1 class="page-title">Deposit Transfer</h1>
@@ -51,7 +51,7 @@
           </div>
           <div class="summary-row total">
             <span>Total:</span>
-            <span>${{ (parseFloat(amount) + getFee()).toFixed(2) }}</span>
+            <span>${{ (parseFloat(amount) + parseFloat(getFee())).toFixed(2) }}</span>
           </div>
         </div>
 
@@ -68,19 +68,12 @@
       <div class="transfer-info">
         <h3>Transfer Information</h3>
         <ul class="info-list">
-          <li>✅ Internal transfers are instant and free</li>
-          <li>✅ Domestic transfers processed same day</li>
-          <li>✅ International transfers within 1-3 business days</li>
-          <li>⚠️ Daily transfer limit: $50,000</li>
-          <li>⚠️ Minimum transfer amount: $1.00</li>
-          <li>🔒 All transfers are secured with encryption</li>
+          <li>✅ Internal transfers are processed instantly</li>
+          <li>✅ Domestic transfers take 1-2 business days</li>
+          <li>✅ International transfers take 3-5 business days</li>
+          <li>✅ All transfers are secured with 256-bit encryption</li>
+          <li>✅ 24/7 fraud monitoring and protection</li>
         </ul>
-
-        <div class="rate-info">
-          <h4>Current Rates</h4>
-          <p>High Yield Savings: <strong>3.5% APY</strong></p>
-          <p>Term Deposit 12M: <strong>4.2% APY</strong></p>
-        </div>
       </div>
     </div>
   </div>
@@ -88,6 +81,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const fromAccount = ref('savings')
 const toAccount = ref('')
@@ -95,31 +91,34 @@ const amount = ref('')
 const transferType = ref('internal')
 
 const canTransfer = computed(() => {
-  return fromAccount.value && toAccount.value && amount.value && parseFloat(amount.value) > 0
+  return toAccount.value && amount.value && parseFloat(amount.value) > 0
 })
 
-function goBack() {
-  history.back()
-}
-
-function getFee(): number {
+const getFee = () => {
   switch (transferType.value) {
-    case 'internal': return 0
-    case 'domestic': return 5
-    case 'international': return 25
-    default: return 0
+    case 'domestic':
+      return '5.00'
+    case 'international':
+      return '25.00'
+    default:
+      return '0.00'
   }
 }
 
-function transfer() {
+const goBack = () => {
+  router.push('/deposit')
+}
+
+const transfer = () => {
   if (canTransfer.value) {
-    const totalAmount = parseFloat(amount.value) + getFee()
-    alert(`Transfer of $${amount.value} from ${fromAccount.value} to ${toAccount.value} initiated!\nTotal cost: $${totalAmount.toFixed(2)}`)
+    const fee = getFee()
+    const total = (parseFloat(amount.value) + parseFloat(fee)).toFixed(2)
+    alert(`Transfer successful! $${amount.value} transferred to ${toAccount.value}. Total cost: $${total}`)
     reset()
   }
 }
 
-function reset() {
+const reset = () => {
   toAccount.value = ''
   amount.value = ''
   transferType.value = 'internal'
@@ -135,8 +134,8 @@ function reset() {
   margin-bottom: 20px;
   padding: 8px 16px;
   background: none;
-  border: 1px solid #3498db;
-  color: #3498db;
+  border: 1px solid #27ae60;
+  color: #27ae60;
   font-size: 1rem;
   cursor: pointer;
   border-radius: 4px;
@@ -147,7 +146,7 @@ function reset() {
 }
 
 .back-btn:hover {
-  background-color: #3498db;
+  background-color: #27ae60;
   color: white;
 }
 
@@ -216,30 +215,30 @@ function reset() {
 }
 
 .transfer-summary {
-  background: #e8f5e8;
+  background: #d5edda;
   border: 1px solid #27ae60;
   border-radius: 8px;
-  padding: 20px;
+  padding: 15px;
   margin: 20px 0;
 }
 
 .transfer-summary h4 {
   margin: 0 0 15px 0;
-  color: #27ae60;
+  color: #155724;
 }
 
 .summary-row {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 8px;
-  color: #2c3e50;
+  margin: 8px 0;
+  color: #155724;
 }
 
 .summary-row.total {
   font-weight: bold;
   padding-top: 8px;
   border-top: 1px solid #27ae60;
-  font-size: 1.1rem;
+  margin-top: 15px;
 }
 
 .form-actions {
@@ -264,7 +263,7 @@ function reset() {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #229954;
+  background-color: #219a52;
 }
 
 .btn-primary:disabled {
@@ -298,7 +297,7 @@ function reset() {
 .info-list {
   list-style: none;
   padding: 0;
-  margin: 0 0 25px 0;
+  margin: 0;
 }
 
 .info-list li {
@@ -310,23 +309,6 @@ function reset() {
 
 .info-list li:last-child {
   border-bottom: none;
-}
-
-.rate-info {
-  background: #f8f9fa;
-  padding: 15px;
-  border-radius: 8px;
-  border-left: 3px solid #27ae60;
-}
-
-.rate-info h4 {
-  margin: 0 0 10px 0;
-  color: #2c3e50;
-}
-
-.rate-info p {
-  margin: 5px 0;
-  color: #2c3e50;
 }
 
 @media (max-width: 768px) {

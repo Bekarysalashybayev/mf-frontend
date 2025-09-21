@@ -8,10 +8,10 @@
             <router-link to="/" class="nav-link">🏠 Главная</router-link>
           </li>
           <li class="nav-item">
-            <button @click="navigateTo('')"  class="nav-link">🥇 Gold</button>
+            <router-link to="/gold"  class="nav-link">🥇 Gold</router-link>
           </li>
           <li class="nav-item">
-            <button @click="navigateTo('transfer')" class="nav-link">💰 Gold Transfer</button>
+            <router-link to="deposit" class="nav-link">💰 Deposit</router-link>
           </li>
         </ul>
       </nav>
@@ -23,15 +23,6 @@
 </template>
 
 <script setup lang="ts">
-
-import { useRouter } from 'vue-router'
-
-const router = useRouter()
-
-function navigateTo(path: string) {
-  router.push({ name: 'MF', params: { mfId: decodeURI(path) } });
-}
-
 </script>
 
 <style scoped lang="scss">

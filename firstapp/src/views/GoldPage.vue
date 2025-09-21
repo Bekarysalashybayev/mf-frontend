@@ -24,7 +24,7 @@
         <div class="actions">
           <button class="btn btn-primary">Buy Gold</button>
           <button class="btn btn-secondary">Sell Gold</button>
-          <router-link class="btn btn-transfer" to="/bank/gold/transfer">Transfer Gold</router-link>
+          <router-link class="btn btn-transfer" to="/gold/transfer">Transfer Gold</router-link>
         </div>
       </div>
     </div>
@@ -32,9 +32,12 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 
-function goBack() {
-  history.back()
+const router = useRouter()
+
+const goBack = () => {
+  router.push('/')
 }
 </script>
 

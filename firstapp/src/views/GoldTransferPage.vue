@@ -1,6 +1,6 @@
 <template>
   <div class="gold-transfer-page">
-    <button class="back-btn" @click="goBack">← Назад</button>
+    <button class="back-btn" @click="goBack">← Назад к Gold</button>
 
     <header class="page-header">
       <h1 class="page-title">Gold Transfer</h1>
@@ -49,9 +49,8 @@
         <ul class="info-list">
           <li>✅ Instant transfers between your accounts</li>
           <li>✅ No transfer fees for internal transfers</li>
-          <li>✅ Real-time balance updates</li>
-          <li>⚠️ External transfers may take 1-2 business days</li>
-          <li>⚠️ Minimum transfer amount: 0.01 oz</li>
+          <li>✅ Secure and encrypted transactions</li>
+          <li>✅ 24/7 customer support</li>
         </ul>
       </div>
     </div>
@@ -60,27 +59,30 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const fromAccount = ref('main')
 const toAccount = ref('')
 const amount = ref('')
 
 const canTransfer = computed(() => {
-  return fromAccount.value && toAccount.value && amount.value && parseFloat(amount.value) > 0
+  return toAccount.value && amount.value && parseFloat(amount.value) > 0
 })
 
-function goBack() {
-  history.back()
+const goBack = () => {
+  router.push('/gold')
 }
 
-function transfer() {
+const transfer = () => {
   if (canTransfer.value) {
-    alert(`Transfer of ${amount.value} oz gold from ${fromAccount.value} to ${toAccount.value} initiated!`)
+    alert(`Transfer successful! ${amount.value} oz gold transferred to ${toAccount.value}`)
     reset()
   }
 }
 
-function reset() {
+const reset = () => {
   toAccount.value = ''
   amount.value = ''
 }

@@ -43,7 +43,7 @@
         <div class="actions">
           <button class="btn btn-primary">Open Deposit</button>
           <button class="btn btn-secondary">View Rates</button>
-          <router-link class="btn btn-transfer" to="/bank/deposit/transfer">Transfer Funds</router-link>
+          <router-link class="btn btn-transfer" to="/deposit/transfer">Transfer Funds</router-link>
         </div>
       </div>
     </div>
@@ -51,12 +51,13 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 
-function goBack() {
-  history.back()
+const router = useRouter()
+
+const goBack = () => {
+  router.push('/')
 }
-
-
 </script>
 
 <style scoped>
@@ -64,8 +65,8 @@ function goBack() {
   margin-bottom: 20px;
   padding: 8px 16px;
   background: none;
-  border: 1px solid #3498db;
-  color: #3498db;
+  border: 1px solid #27ae60;
+  color: #27ae60;
   font-size: 1rem;
   cursor: pointer;
   border-radius: 4px;
@@ -76,7 +77,7 @@ function goBack() {
 }
 
 .back-btn:hover {
-  background-color: #3498db;
+  background-color: #27ae60;
   color: white;
 }
 
@@ -141,19 +142,23 @@ function goBack() {
 }
 
 .deposit-amount {
-  color: #7f8c8d;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #27ae60;
   margin: 0;
-  font-size: 0.9rem;
 }
 
 .deposit-rate {
-  font-weight: bold;
-  color: #27ae60;
-  font-size: 1.1rem;
+  background: #d5edda;
+  color: #155724;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .interest-amount {
-  font-size: 2.2rem;
+  font-size: 2rem;
   font-weight: bold;
   color: #27ae60;
   margin: 10px 0 5px 0;
@@ -173,14 +178,15 @@ function goBack() {
 
 .chart-bar {
   background: linear-gradient(to top, #27ae60, #2ecc71);
-  width: 15px;
-  border-radius: 2px 2px 0 0;
-  min-height: 10px;
+  width: 20px;
+  border-radius: 2px;
+  min-height: 20px;
 }
 
 .actions {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .btn {
@@ -190,6 +196,10 @@ function goBack() {
   cursor: pointer;
   font-weight: 500;
   transition: all 0.3s ease;
+  text-decoration: none;
+  text-align: center;
+  flex: 1;
+  min-width: 120px;
 }
 
 .btn-primary {
@@ -216,6 +226,16 @@ function goBack() {
 }
 
 .btn-transfer:hover {
-  background-color: #219150;
+  background-color: #219a52;
+}
+
+@media (max-width: 768px) {
+  .actions {
+    flex-direction: column;
+  }
+
+  .btn {
+    flex: none;
+  }
 }
 </style>
