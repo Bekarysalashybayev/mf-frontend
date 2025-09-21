@@ -1,59 +1,56 @@
 <template>
-  <MainLayout>
-    <div class="home-page">
-      <header class="hero-section">
-        <div class="hero-content">
-          <h1 class="hero-title">Добро пожаловать в Banking Hub</h1>
-          <p class="hero-subtitle">Управляйте своими финансами с удобством и безопасностью</p>
-        </div>
-      </header>
+  <div class="home-page">
+    <header class="hero-section">
+      <div class="hero-content">
+        <h1 class="hero-title">Добро пожаловать в Banking Hub</h1>
+        <p class="hero-subtitle">Управляйте своими финансами с удобством и безопасностью</p>
+      </div>
+    </header>
 
-      <div class="services-grid">
-        <div class="service-card" @click="navigateTo('/deposit')">
-          <div class="service-icon deposit-icon">💰</div>
-          <h3>Депозиты</h3>
-          <p>Управляйте вашими депозитными счетами и получайте проценты</p>
-          <div class="service-stats">
-            <span class="stat">До 4.2% годовых</span>
-          </div>
-          <button class="service-btn">Перейти к депозитам</button>
+    <div class="services-grid">
+      <div class="service-card" @click="navigateTo('/deposit')">
+        <div class="service-icon deposit-icon">💰</div>
+        <h3>Депозиты</h3>
+        <p>Управляйте вашими депозитными счетами и получайте проценты</p>
+        <div class="service-stats">
+          <span class="stat">До 4.2% годовых</span>
         </div>
-
-        <div class="service-card" @click="navigateTo('/gold')">
-          <div class="service-icon gold-icon">🥇</div>
-          <h3>Золото</h3>
-          <p>Инвестируйте в драгоценные металлы и диверсифицируйте портфель</p>
-          <div class="service-stats">
-            <span class="stat">$2,016.12 за унцию</span>
-          </div>
-          <button class="service-btn">Перейти к золоту</button>
-        </div>
+        <button class="service-btn">Перейти к депозитам</button>
       </div>
 
-      <div class="quick-stats">
-        <div class="stat-card">
-          <h4>Общий баланс</h4>
-          <p class="stat-value">$206,250</p>
-          <span class="stat-change positive">+2.3% за месяц</span>
+      <div class="service-card" @click="navigateTo('/gold')">
+        <div class="service-icon gold-icon">🥇</div>
+        <h3>Золото</h3>
+        <p>Инвестируйте в драгоценные металлы и диверсифицируйте портфель</p>
+        <div class="service-stats">
+          <span class="stat">$2,016.12 за унцию</span>
         </div>
-        <div class="stat-card">
-          <h4>Активные продукты</h4>
-          <p class="stat-value">3</p>
-          <span class="stat-description">Депозиты и инвестиции</span>
-        </div>
-        <div class="stat-card">
-          <h4>Доходность</h4>
-          <p class="stat-value">3.8%</p>
-          <span class="stat-description">Средняя за год</span>
-        </div>
+        <button class="service-btn">Перейти к золоту</button>
       </div>
     </div>
-  </MainLayout>
+
+    <div class="quick-stats">
+      <div class="stat-card">
+        <h4>Общий баланс</h4>
+        <p class="stat-value">$206,250</p>
+        <span class="stat-change positive">+2.3% за месяц</span>
+      </div>
+      <div class="stat-card">
+        <h4>Активные продукты</h4>
+        <p class="stat-value">3</p>
+        <span class="stat-description">Депозиты и инвестиции</span>
+      </div>
+      <div class="stat-card">
+        <h4>Доходность</h4>
+        <p class="stat-value">3.8%</p>
+        <span class="stat-description">Средняя за год</span>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import MainLayout from '@/components/MainLayout.vue'
 
 const router = useRouter()
 
