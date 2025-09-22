@@ -2,6 +2,9 @@
   <div class="header">
     <h1>{{ title }}</h1>
     <p class="subtitle">Выберите подходящий кредитный продукт</p>
+    <div class="actions">
+      <a class="transfer-link" href="" (click)="navigate('/bank/credit/transfer'); $event.preventDefault()">Перейти к переводу кредита →</a>
+    </div>
   </div>
 
   <div class="credit-offers">

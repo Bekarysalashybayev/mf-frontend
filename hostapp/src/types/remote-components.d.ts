@@ -23,6 +23,13 @@ declare module 'angularApp/CreditMount' {
   export default _default
 }
 
+declare module 'angularApp/CreditTransferMount' {
+  export interface AngularMountHandle { destroy: () => void; appRef: any; rootElement: HTMLElement }
+  export function mountCreditTransfer(container: HTMLElement): Promise<AngularMountHandle>
+  const _default: typeof mountCreditTransfer
+  export default _default
+}
+
 declare module 'angularApp/CreditPage' {
   const CreditComponent: any
   export default CreditComponent

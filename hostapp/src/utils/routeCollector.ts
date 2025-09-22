@@ -46,12 +46,21 @@ export async function collectAndAdaptRoutes(): Promise<RouteRecordRaw[]> {
     }
   }
 
-  // Добавляем Angular роут с Vue-оберткой
-  adaptedRoutes.push({
-    path: '/bank/credit',
-    name: 'credit',
-    component: AngularWrapper
-  })
+  // Добавляем Angular роуты с Vue-оберткой
+  adaptedRoutes.push(
+    {
+      path: '/bank/credit',
+      name: 'credit',
+      component: AngularWrapper,
+      meta: { angularMount: 'credit' }
+    },
+    {
+      path: '/bank/credit/transfer',
+      name: 'credit-transfer',
+      component: AngularWrapper,
+      meta: { angularMount: 'credit-transfer' }
+    }
+  )
 
   return adaptedRoutes
 }

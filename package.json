@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Banking Micro-Frontend System with Vue 3 and Angular Module Federation",
   "scripts": {
-    "dev": "concurrently \"npm run dev:host\" \"npm run dev:first\" \"npm run dev:second\"",
+    "dev": "concurrently \"npm run dev:host\" \"npm run dev:first\" \"npm run dev:second\" \"npm run dev:angular\"",
     "dev:host": "cd hostapp && pnpm dev",
     "dev:first": "cd firstapp && pnpm preview",
     "dev:second": "cd secondapp && pnpm preview",

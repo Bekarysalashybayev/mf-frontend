@@ -39,6 +39,10 @@ export class CreditComponent {
   applyForCredit(creditId: number) {
     alert(`Подача заявки на кредит #${creditId}`);
   }
+
+  navigate(path: string) {
+    window.dispatchEvent(new CustomEvent('mf:navigate', { detail: { path } }));
+  }
 }
 
 // Экспортируем компонент как default для Module Federation

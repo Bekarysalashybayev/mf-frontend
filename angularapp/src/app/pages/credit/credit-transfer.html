@@ -1,0 +1,44 @@
+<div class="credit-transfer-page">
+  <div class="header">
+    <h1>{{ title }}</h1>
+    <p class="subtitle">Форма перевода между кредитными счетами</p>
+    <a class="back-link" href="" (click)="navigate('/bank/credit'); $event.preventDefault()">← Назад к кредитным продуктам</a>
+  </div>
+
+  <form (ngSubmit)="submit()" #transferForm="ngForm" class="transfer-form" *ngIf="!submitted; else successBlock">
+    <div class="form-row">
+      <label for="fromAccount">С аккаунта</label>
+      <input id="fromAccount" name="fromAccount" required [(ngModel)]="model.fromAccount" placeholder="Например: CR-1001" />
+    </div>
+
+    <div class="form-row">
+      <label for="toAccount">На аккаунт</label>
+      <input id="toAccount" name="toAccount" required [(ngModel)]="model.toAccount" placeholder="Например: CR-2004" />
+    </div>
+
+    <div class="form-row two-cols">
+      <div>
+        <label for="amount">Сумма (₽)</label>
+        <input id="amount" type="number" name="amount" required min="1" [(ngModel)]="model.amount" />
+      </div>
+      <div>
+        <label for="comment">Комментарий</label>
+        <input id="comment" name="comment" [(ngModel)]="model.comment" placeholder="Необязательно" />
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="submit" [disabled]="!transferForm.form.valid">Выполнить перевод</button>
+      <button type="reset" (click)="model = { fromAccount: '', toAccount: '', amount: 0, comment: '' }" type="button" class="secondary">Очистить</button>
+    </div>
+  </form>
+
+  <ng-template #successBlock>
+    <div class="success">
+      <h2>Перевод отправлен</h2>
+      <p>Ваш перевод обрабатывается. Вы можете выполнить ещё один.</p>
+      <button (click)="submitted = false; model = { fromAccount: '', toAccount: '', amount: 0, comment: '' }">Новый перевод</button>
+      <a class="back-link" href="" (click)="navigate('/bank/credit'); $event.preventDefault()">← К списку кредитов</a>
+    </div>
+  </ng-template>
+</div>

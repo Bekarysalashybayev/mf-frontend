@@ -5,7 +5,8 @@ module.exports = withModuleFederationPlugin({
   name: 'angularApp',
   exposes: {
     './CreditPage': './src/app/pages/credit/credit.ts',
-    './CreditMount': './src/app/mfe/credit-mount.ts'
+    './CreditMount': './src/app/mfe/credit-mount.ts',
+    './CreditTransferMount': './src/app/mfe/credit-transfer-mount.ts'
   },
   shared: {
     ...shareAll({ singleton: true, strictVersion: true, requiredVersion: 'auto' }),
