@@ -2,16 +2,19 @@
   <div class="layout">
     <aside class="sidebar">
       <nav class="nav">
-        <h3 class="nav-title">Bank Menu</h3>
+        <div class="nav-header">
+          <h3 class="nav-title">Bank Menu</h3>
+          <button class="back-btn" type="button" @click="onBackClick">← Назад</button>
+        </div>
         <ul class="nav-list">
           <li class="nav-item">
-            <router-link to="/" class="nav-link">🏠 Главная</router-link>
+            <router-link to="/bank/dashboard" class="nav-link">🏠 Главная</router-link>
           </li>
           <li class="nav-item">
-            <button @click="navigateTo('')"  class="nav-link">🥇 Gold</button>
+            <router-link to="/bank/gold"  class="nav-link">🥇 Gold</router-link>
           </li>
           <li class="nav-item">
-            <button @click="navigateTo('transfer')" class="nav-link">💰 Gold Transfer</button>
+            <router-link to="/bank/deposit" class="nav-link">💰 Deposit</router-link>
           </li>
         </ul>
       </nav>
@@ -23,7 +26,6 @@
 </template>
 
 <script setup lang="ts">
-
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -32,6 +34,13 @@ function navigateTo(path: string) {
   router.push({ name: 'MF', params: { mfId: decodeURI(path) } });
 }
 
+function onBackClick() {
+  if (window.mfChildHistoryBack) {
+    window.mfChildHistoryBack()
+  } else {
+    history.back()
+  }
+}
 </script>
 
 <style scoped lang="scss">
@@ -55,13 +64,31 @@ function navigateTo(path: string) {
     overflow-y: auto;
   }
 
+  .nav-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .back-btn {
+    background: #34495e;
+    border: 0;
+    color: #ecf0f1;
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .back-btn:hover { background:#3d566e; }
+
   .nav-title {
-    margin: 0 0 20px 0;
+    margin: 0;
     font-size: 1.2rem;
     font-weight: bold;
     color: #ecf0f1;
-    border-bottom: 1px solid #34495e;
-    padding-bottom: 10px;
   }
 
   .nav-list {
@@ -70,9 +97,7 @@ function navigateTo(path: string) {
     margin: 0;
   }
 
-  .nav-item {
-    margin-bottom: 8px;
-  }
+  .nav-item { margin-bottom: 8px; }
 
   .nav-link {
     display: block;
@@ -82,13 +107,11 @@ function navigateTo(path: string) {
     border-radius: 6px;
     transition: all 0.3s ease;
   }
-
   .nav-link:hover {
     background-color: #34495e;
     color: #fff;
     transform: translateX(5px);
   }
-
   .nav-link.router-link-active {
     background-color: #3498db;
     color: white;

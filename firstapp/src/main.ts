@@ -3,17 +3,16 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
+import { mfSystem } from '../setup-mf'
 
 const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
 
+mfSystem.attachRouter(router)
+
 app.mount('#app')
 
-// Setup postMessage handshake after router is ready
-router.isReady().then(() => {
-  // notify parent about current route
-  const msg = { type: 'mf-ready', path: router.currentRoute.value.fullPath, from: 'mf', nonce: String(Date.now()) };
-  window.parent.postMessage(msg, '*'); // укажи origin в проде
-});
+// Система микрофронтенда уже инициализирована в setup-mf.ts
+console.log('Firstapp mounted, MF system state:', mfSystem.getState())
