@@ -11,11 +11,9 @@ export default defineConfig({
     vue(),
     vueDevTools(),
     federation({
-      name: 'second-app',
+      name: 'secondApp',
       filename: 'remoteEntry.js',
       exposes: {
-        './DepositPage': './src/views/DepositPage.vue',
-        './DepositTransferPage': './src/views/DepositTransferPage.vue',
         './router': './src/router/index.ts'
       },
       shared: ['vue', 'vue-router', 'pinia']

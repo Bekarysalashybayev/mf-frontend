@@ -11,7 +11,7 @@ export default defineConfig({
     vue(),
     vueDevTools(),
     federation({
-      name: 'first-app',
+      name: 'firstApp',
       filename: 'remoteEntry.js',
       exposes: {
         './router': './src/router/index.ts'
