@@ -1,32 +1,51 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import HomePage from '@/views/HomePage.vue'
 import MainLayout from '@/components/MainLayout.vue'
+import { collectAndAdaptRoutes, getAllMicrofrontendRoutes } from '@/utils/routeCollector'
 
-// Динамическая загрузка удаленных компонентов
-const GoldPage = () => import('firstApp/GoldPage')
-const GoldTransferPage = () => import('firstApp/GoldTransferPage')
-const DepositPage = () => import('secondApp/DepositPage')
-const DepositTransferPage = () => import('secondApp/DepositTransferPage')
+// Создаем функцию для создания роутера с загруженными роутами
+async function createAppRouter() {
+  let routes: RouteRecordRaw[] = [
+    {
+      path: '/',
+      component: MainLayout,
+      children: [
+        { path: '', name: 'Home', component: HomePage }
+      ]
+    }
+  ]
 
-const routes: RouteRecordRaw[] = [
-  {
-    path: "/",
-    component: MainLayout,
-    children: [
-      { path: '', name: 'Home', component: HomePage },
-      // Роуты для первого микрофронтенда (Gold)
-      { path: '/gold', name: 'Gold', component: GoldPage },
-      { path: '/gold/transfer', name: 'GoldTransfer', component: GoldTransferPage },
-      // Роуты для второго микрофронтенда (Deposit)
-      { path: '/deposit', name: 'Deposit', component: DepositPage },
-      { path: '/deposit/transfer', name: 'DepositTransfer', component: DepositTransferPage },
-    ]
+  try {
+    // Загружаем роуты из микрофронтендов синхронно при создании роутера
+    const allMicrofrontendRoutes = await getAllMicrofrontendRoutes()
+    console.log('Найдены роуты из микрофронтендов:', allMicrofrontendRoutes)
+
+    const adaptedRoutes = await collectAndAdaptRoutes()
+    console.log('Адаптированные роуты для хост-приложения:', adaptedRoutes)
+
+    // Добавляем роуты из микрофронтендов как дочерние к MainLayout
+    if (adaptedRoutes.length > 0) {
+      routes[0].children = [
+        ...routes[0].children!,
+        ...adaptedRoutes
+      ]
+    }
+
+    console.log(`Успешно загружено ${adaptedRoutes.length} роутов из микрофронтендов`)
+  } catch (error) {
+    console.error('Ошибка при загрузке роутов из микрофронтендов:', error)
+    console.log('Роутер создан с базовыми роутами')
   }
-]
 
-const router = createRouter({
-  history: createWebHistory(),
-  routes
-})
+  const router = createRouter({
+    history: createWebHistory(),
+    routes
+  })
 
-export default router
+  console.log('Все роуты в приложении:', router.getRoutes().map(r => ({ path: r.path, name: r.name })))
+
+  return router
+}
+
+// Экспортируем промис с роутером
+export default createAppRouter()

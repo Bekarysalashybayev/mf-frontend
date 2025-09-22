@@ -1,19 +1,11 @@
-declare module 'firstApp/GoldPage' {
-  const component: any
-  export default component
+declare module 'firstApp/router' {
+  import type { Router } from 'vue-router'
+  const router: Router
+  export default router
 }
 
-declare module 'firstApp/GoldTransferPage' {
-  const component: any
-  export default component
-}
-
-declare module 'secondApp/DepositPage' {
-  const component: any
-  export default component
-}
-
-declare module 'secondApp/DepositTransferPage' {
-  const component: any
-  export default component
+declare module 'secondApp/router' {
+  import type { Router } from 'vue-router'
+  const router: Router
+  export default router
 }

@@ -24,7 +24,7 @@
         <div class="actions">
           <button class="btn btn-primary">Buy Gold</button>
           <button class="btn btn-secondary">Sell Gold</button>
-          <router-link class="btn btn-transfer" to="/gold/transfer">Transfer Gold</router-link>
+          <router-link class="btn btn-transfer" to="/bank/gold/transfer">Transfer Gold</router-link>
         </div>
       </div>
     </div>

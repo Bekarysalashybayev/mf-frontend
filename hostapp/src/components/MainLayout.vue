@@ -8,10 +8,10 @@
             <router-link to="/" class="nav-link">🏠 Главная</router-link>
           </li>
           <li class="nav-item">
-            <router-link to="/gold"  class="nav-link">🥇 Gold</router-link>
+            <router-link to="/bank/gold" class="nav-link">🥇 Gold</router-link>
           </li>
           <li class="nav-item">
-            <router-link to="deposit" class="nav-link">💰 Deposit</router-link>
+            <router-link to="/bank/deposit" class="nav-link">💰 Deposit</router-link>
           </li>
         </ul>
       </nav>
