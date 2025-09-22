@@ -1,18 +1,20 @@
 {
   "name": "micro-frontend-system",
   "version": "1.0.0",
-  "description": "Banking Micro-Frontend System with Vue 3 and Module Federation",
+  "description": "Banking Micro-Frontend System with Vue 3 and Angular Module Federation",
   "scripts": {
     "dev": "concurrently \"npm run dev:host\" \"npm run dev:first\" \"npm run dev:second\"",
     "dev:host": "cd hostapp && pnpm dev",
     "dev:first": "cd firstapp && pnpm preview",
     "dev:second": "cd secondapp && pnpm preview",
-    "build": "npm run build:first && npm run build:second && npm run build:host",
+    "dev:angular": "cd angularapp && npm run dev",
+    "build": "npm run build:first && npm run build:second && npm run build:angular && npm run build:host",
     "build:host": "cd hostapp && pnpm build",
     "build:first": "cd firstapp && pnpm build",
     "build:second": "cd secondapp && pnpm build",
-    "install:all": "cd hostapp && pnpm install && cd ../firstapp && pnpm install && cd ../secondapp && pnpm install",
-    "clean": "rimraf hostapp/dist firstapp/dist secondapp/dist"
+    "build:angular": "cd angularapp && npm run build",
+    "install:all": "cd hostapp && pnpm install && cd ../firstapp && pnpm install && cd ../secondapp && pnpm install && cd ../angularapp && npm install",
+    "clean": "rimraf hostapp/dist firstapp/dist secondapp/dist angularapp/dist"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
@@ -21,6 +23,7 @@
   "workspaces": [
     "hostapp",
     "firstapp",
-    "secondapp"
+    "secondapp",
+    "angularapp"
   ]
 }

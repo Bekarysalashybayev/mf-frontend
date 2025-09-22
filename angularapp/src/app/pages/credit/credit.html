@@ -1,0 +1,29 @@
+<div class="credit-page">
+  <div class="header">
+    <h1>{{ title }}</h1>
+    <p class="subtitle">Выберите подходящий кредитный продукт</p>
+  </div>
+
+  <div class="credit-offers">
+    <div class="credit-card" *ngFor="let offer of creditOffers">
+      <div class="card-header">
+        <h3>{{ offer.name }}</h3>
+        <div class="rate">{{ offer.rate }}</div>
+      </div>
+
+      <div class="card-body">
+        <div class="amount">
+          <span class="label">Сумма:</span>
+          <span class="value">{{ offer.amount }}</span>
+        </div>
+        <p class="description">{{ offer.description }}</p>
+      </div>
+
+      <div class="card-footer">
+        <button class="apply-btn" (click)="applyForCredit(offer.id)">
+          Подать заявку
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -18,3 +18,5 @@ async function initApp() {
 initApp().catch(error => {
   console.error('Ошибка инициализации приложения:', error)
 })
+
+

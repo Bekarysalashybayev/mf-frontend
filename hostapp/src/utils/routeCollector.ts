@@ -1,4 +1,5 @@
 import type { RouteRecordRaw, Router } from 'vue-router'
+import AngularWrapper from '@/components/AngularWrapper.vue'
 
 interface MicrofrontendConfig {
   name: string
@@ -44,6 +45,13 @@ export async function collectAndAdaptRoutes(): Promise<RouteRecordRaw[]> {
       console.warn(`Не удалось загрузить роуты из ${mf.name}:`, error)
     }
   }
+
+  // Добавляем Angular роут с Vue-оберткой
+  adaptedRoutes.push({
+    path: '/bank/credit',
+    name: 'credit',
+    component: AngularWrapper
+  })
 
   return adaptedRoutes
 }

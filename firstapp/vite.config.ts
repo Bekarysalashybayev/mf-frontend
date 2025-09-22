@@ -14,8 +14,6 @@ export default defineConfig({
       name: 'first-app',
       filename: 'remoteEntry.js',
       exposes: {
-        './GoldPage': './src/views/GoldPage.vue',
-        './GoldTransferPage': './src/views/GoldTransferPage.vue',
         './router': './src/router/index.ts'
       },
       shared: ['vue', 'vue-router', 'pinia']

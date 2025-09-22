@@ -14,7 +14,8 @@ export default defineConfig({
       name: 'host-app',
       remotes: {
         firstApp: 'http://localhost:3001/assets/remoteEntry.js',
-        secondApp: 'http://localhost:3003/assets/remoteEntry.js'
+        secondApp: 'http://localhost:3003/assets/remoteEntry.js',
+        angularApp: 'http://localhost:3004/remoteEntry.js'
       },
       shared: ['vue', 'vue-router', 'pinia']
     }),

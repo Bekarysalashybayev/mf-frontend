@@ -1,0 +1,10 @@
+.angular-app {
+  width: 100%;
+  min-height: 100vh;
+  background: #f8f9fa;
+}
+
+:host {
+  display: block;
+  width: 100%;
+}

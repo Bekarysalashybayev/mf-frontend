@@ -49,3 +49,5 @@ async function createAppRouter() {
 
 // Экспортируем промис с роутером
 export default createAppRouter()
+
+
