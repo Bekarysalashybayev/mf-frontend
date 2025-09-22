@@ -106,7 +106,7 @@ const getFee = () => {
 }
 
 const goBack = () => {
-  router.push('/deposit')
+  history.back()
 }
 
 const transfer = () => {

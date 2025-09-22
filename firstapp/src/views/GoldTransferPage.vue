@@ -72,7 +72,7 @@ const canTransfer = computed(() => {
 })
 
 const goBack = () => {
-  router.push('/gold')
+  history.back()
 }
 
 const transfer = () => {

@@ -1,9 +1,18 @@
-import type { RouteRecordRaw, Router } from 'vue-router'
+import type { RouteRecordRaw } from 'vue-router'
+import type { Component } from 'vue'
 import AngularWrapper from '@/components/AngularWrapper.vue'
+
+interface RemoteRoute {
+  path: string
+  name?: string
+  component?: unknown
+  meta?: { angularMount?: string } & Record<string, unknown>
+}
+interface RouterLike { options?: { routes?: RemoteRoute[] } }
 
 interface MicrofrontendConfig {
   name: string
-  routerImport: () => Promise<{ default: Router }>
+  routerImport: () => Promise<{ default: unknown }>
 }
 
 // Конфигурация микрофронтендов
@@ -15,6 +24,10 @@ const microfrontends: MicrofrontendConfig[] = [
   {
     name: 'secondApp',
     routerImport: () => import('secondApp/router')
+  },
+  {
+    name: 'creditApp',
+    routerImport: () => import('creditApp/router')
   }
 ]
 
@@ -27,40 +40,31 @@ export async function collectAndAdaptRoutes(): Promise<RouteRecordRaw[]> {
   for (const mf of microfrontends) {
     try {
       const routerModule = await mf.routerImport()
-      const router = routerModule.default
+      const routerLike = routerModule.default as RouterLike
 
-      if (router && router.options && router.options.routes) {
-        // Обрабатываем роуты из микрофронтенда
-        for (const route of router.options.routes) {
-          if (route.component) {
-            adaptedRoutes.push({
-              path: route.path, // Оставляем оригинальный путь без изменений
-              name: route.name,
-              component: route.component
-            } as RouteRecordRaw)
-          }
+      const routes = routerLike.options?.routes ?? []
+      for (const route of routes) {
+        if (route.component) {
+          adaptedRoutes.push({
+            path: route.path,
+            name: route.name,
+            component: route.component as Component
+          })
+          continue
+        }
+        if (!route.component && route.meta?.angularMount) {
+          adaptedRoutes.push({
+            path: route.path,
+            name: route.name,
+            component: AngularWrapper,
+            meta: { angularMount: route.meta.angularMount }
+          })
         }
       }
     } catch (error) {
       console.warn(`Не удалось загрузить роуты из ${mf.name}:`, error)
     }
   }
-
-  // Добавляем Angular роуты с Vue-оберткой
-  adaptedRoutes.push(
-    {
-      path: '/bank/credit',
-      name: 'credit',
-      component: AngularWrapper,
-      meta: { angularMount: 'credit' }
-    },
-    {
-      path: '/bank/credit/transfer',
-      name: 'credit-transfer',
-      component: AngularWrapper,
-      meta: { angularMount: 'credit-transfer' }
-    }
-  )
 
   return adaptedRoutes
 }
@@ -74,11 +78,14 @@ export async function getAllMicrofrontendRoutes(): Promise<RouteRecordRaw[]> {
   for (const mf of microfrontends) {
     try {
       const routerModule = await mf.routerImport()
-      const router = routerModule.default
-
-      if (router && router.options && router.options.routes) {
-        allRoutes.push(...router.options.routes)
-      }
+      const routerLike = routerModule.default as RouterLike
+      const routes = routerLike.options?.routes ?? []
+      const mapped = routes.map(r => ({
+        path: r.path,
+        name: r.name,
+        meta: r.meta
+      })) as RouteRecordRaw[]
+      allRoutes.push(...mapped)
     } catch (error) {
       console.warn(`Не удалось загрузить роуты из ${mf.name}:`, error)
     }

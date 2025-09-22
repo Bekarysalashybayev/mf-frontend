@@ -1,10 +1,13 @@
 <template>
   <div ref="angularContainer" class="angular-wrapper">
-    <div v-if="loading" class="loading">Загрузка Angular компонента...</div>
-    <div v-if="error" class="error">
-      <h3>Ошибка загрузки Angular компонента</h3>
-      <p>{{ error }}</p>
+    <div class="status-layer">
+      <div v-if="loading" class="loading">Загрузка Angular компонента...</div>
+      <div v-if="error" class="error">
+        <h3>Ошибка загрузки Angular компонента</h3>
+        <p>{{ error }}</p>
+      </div>
     </div>
+    <div ref="mountTarget" class="ng-mount-target"></div>
   </div>
 </template>
 
@@ -12,14 +15,19 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+interface AngularMountHandle { destroy: () => void }
+
 const route = useRoute()
 const router = useRouter()
 const angularContainer = ref<HTMLElement>()
+const mountTarget = ref<HTMLElement>()
 const loading = ref(true)
 const error = ref('')
-let angularAppHandle: { destroy: () => void } | null = null
+let angularAppHandle: AngularMountHandle | null = null
 let currentKey = ''
 let tryingFallback = false
+let isMounting = false
+let pendingKey: string | null = null
 
 function injectRemoteEntry(url: string): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -36,64 +44,77 @@ function injectRemoteEntry(url: string): Promise<void> {
   })
 }
 
-async function loadModule(key: string) {
-  if (key === 'credit-transfer') {
-    // @ts-ignore
-    return await import('angularApp/CreditTransferMount')
+async function loadUniversalMount(): Promise<(key: string, el: HTMLElement) => Promise<AngularMountHandle>> {
+  const mod = await import('creditApp/mount')
+  const rec = mod as Record<string, unknown>
+  const candidate = (rec.default ?? rec.mountAngular)
+  if (typeof candidate !== 'function') throw new Error('Не найден универсальный mountAngular')
+  return candidate as (key: string, el: HTMLElement) => Promise<AngularMountHandle>
+}
+
+async function performAngularMount(key: string) {
+  if (!mountTarget.value) {
+    error.value = 'Точка монтирования отсутствует'
+    loading.value = false
+    return
   }
-  // @ts-ignore
-  return await import('angularApp/CreditMount')
+  const mountFn = await loadUniversalMount()
+  angularAppHandle = await mountFn(key, mountTarget.value)
 }
 
 async function mountByKey(key: string) {
-  if (currentKey === key && angularAppHandle) return
+  if (currentKey === key && angularAppHandle && !error.value) return
+  if (isMounting) { pendingKey = key; return }
+  isMounting = true
+  pendingKey = null
   currentKey = key
   loading.value = true
   error.value = ''
 
-  try { angularAppHandle?.destroy() } catch (e) { console.warn('Destroy previous Angular app error', e) }
+  // Уничтожаем предыдущий Angular инстанс, но не трогаем структуру Vue
+  try { angularAppHandle?.destroy() } catch { /* ignore */ }
   angularAppHandle = null
-  if (angularContainer.value) angularContainer.value.innerHTML = ''
+  if (mountTarget.value) mountTarget.value.innerHTML = ''
 
   try {
-    const mod = await loadModule(key)
-    const mount = mod.default || mod.mountCredit || mod.mountCreditTransfer
-    if (!mount) throw new Error('mount функция не найдена для ключа ' + key)
-    if (!angularContainer.value) throw new Error('Контейнер отсутствует')
-    angularAppHandle = await mount(angularContainer.value)
+    await performAngularMount(key)
     loading.value = false
-  } catch (err: any) {
-    // Fallback: если модуль не резолвится, пробуем явно подгрузить remoteEntry и повторить
-    if (!tryingFallback && /Failed to resolve module specifier/.test(err?.message || '')) {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    if (!tryingFallback && /Failed to resolve module specifier|does not provide an export/i.test(message)) {
       tryingFallback = true
       try {
         await injectRemoteEntry('http://localhost:3004/remoteEntry.js')
-        const mod2 = await loadModule(key)
-        const mount2 = mod2.default || mod2.mountCredit || mod2.mountCreditTransfer
-        if (!mount2) throw new Error('mount функция не найдена после fallback для ключа ' + key)
-        if (!angularContainer.value) throw new Error('Контейнер отсутствует')
-        angularAppHandle = await mount2(angularContainer.value)
+        await performAngularMount(key)
         loading.value = false
         tryingFallback = false
-        return
       } catch (inner) {
-        console.error('Fallback загрузка не удалась', inner)
+        const innerMsg = inner instanceof Error ? inner.message : String(inner)
+        console.error('Fallback загрузка не удалась', innerMsg)
+        error.value = `Angular fallback ошибка: ${innerMsg}`
+        loading.value = false
         tryingFallback = false
       }
+    } else {
+      console.error('Ошибка загрузки Angular микрофронта:', message)
+      error.value = `Module Federation ошибка: ${message}`
+      loading.value = false
     }
-    console.error('Ошибка загрузки Angular микрофронта:', err)
-    error.value = `Module Federation ошибка: ${err.message}`
-    loading.value = false
+  } finally {
+    isMounting = false
+    if (pendingKey && pendingKey !== currentKey) {
+      const next = pendingKey
+      pendingKey = null
+      mountByKey(next)
+    }
   }
 }
 
 function handleNavigate(e: Event) {
   const ce = e as CustomEvent
-  const path = ce.detail?.path
-  if (typeof path === 'string') {
-    if (router.currentRoute.value.fullPath !== path) {
-      router.push(path).catch(()=>{})
-    }
+  const path = (ce.detail && (ce.detail as Record<string, unknown>).path) as string | undefined
+  if (typeof path === 'string' && router.currentRoute.value.fullPath !== path) {
+    router.push(path).catch(()=>{})
   }
 }
 
@@ -103,7 +124,6 @@ onMounted(() => {
   mountByKey(key)
 })
 
-// Перемонтируем при смене meta.angularMount или пути
 watch(() => route.fullPath, () => {
   const key = (route.meta.angularMount as string) || 'credit'
   mountByKey(key)
@@ -111,16 +131,18 @@ watch(() => route.fullPath, () => {
 
 onUnmounted(() => {
   window.removeEventListener('mf:navigate', handleNavigate as EventListener)
-  try { angularAppHandle?.destroy() } catch (e) { console.warn('Destroy error', e) }
-  if (angularContainer.value) angularContainer.value.innerHTML = ''
+  try { angularAppHandle?.destroy() } catch { /* ignore */ }
+  if (mountTarget.value) mountTarget.value.innerHTML = ''
 })
 </script>
 
 <style scoped>
-.angular-wrapper { width: 100%; min-height: 400px; }
-.loading, .error { padding: 2rem; text-align: center; }
-.loading { color: #3498db; font-size: 1.1rem; }
+.angular-wrapper { width: 100%; min-height: 400px; position: relative; }
+.status-layer { position: relative; z-index: 2; }
+.ng-mount-target { position: relative; z-index: 1; }
+.loading, .error { padding: 1.25rem 1rem; text-align: center; }
+.loading { color: #3498db; font-size: 0.95rem; }
 .error { color: #e74c3c; border: 1px solid #e74c3c; border-radius: 4px; background: #fdf2f2; }
-.error h3 { margin-top: 0; }
+.error h3 { margin: 0 0 0.5rem; font-size: 1rem; }
 :deep(.credit-page), :deep(.credit-transfer-page) { padding: 2rem; max-width: 1200px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
 </style>

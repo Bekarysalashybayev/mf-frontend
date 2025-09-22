@@ -1,3 +1,5 @@
+/* В декларациях допускаем расширенные any/unknown для внешних remote модулей */
+
 declare module 'firstApp/router' {
   import type { Router } from 'vue-router'
   const router: Router
@@ -11,28 +13,16 @@ declare module 'secondApp/router' {
 }
 
 declare module 'creditApp/router' {
-  import type { Router } from 'vue-router'
-  const router: Router
+  interface CreditRouterLike { options: { routes: Array<{ path: string; name?: string; meta?: Record<string, unknown>; component?: unknown }> } }
+  const router: CreditRouterLike
   export default router
 }
 
-declare module 'angularApp/CreditMount' {
-  export interface AngularMountHandle { destroy: () => void; appRef: any; rootElement: HTMLElement }
-  export function mountCredit(container: HTMLElement): Promise<AngularMountHandle>
-  const _default: typeof mountCredit
+declare module 'creditApp/mount' {
+  import type { ApplicationRef, Provider } from '@angular/core'
+  export interface AngularMountHandle { destroy: () => void; appRef: ApplicationRef; rootElement: HTMLElement; key: string }
+  export interface MountOptions { providers?: Provider[] }
+  export function mountAngular(key: string, container: HTMLElement, opts?: MountOptions): Promise<AngularMountHandle>
+  const _default: typeof mountAngular
   export default _default
 }
-
-declare module 'angularApp/CreditTransferMount' {
-  export interface AngularMountHandle { destroy: () => void; appRef: any; rootElement: HTMLElement }
-  export function mountCreditTransfer(container: HTMLElement): Promise<AngularMountHandle>
-  const _default: typeof mountCreditTransfer
-  export default _default
-}
-
-declare module 'angularApp/CreditPage' {
-  const CreditComponent: any
-  export default CreditComponent
-}
-
-// Angular remote modules (без импорта пакетов Angular, чтобы не тащить зависимость)

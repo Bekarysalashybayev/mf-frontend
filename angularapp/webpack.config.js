@@ -1,12 +1,12 @@
 const { shareAll, withModuleFederationPlugin } = require('@angular-architects/module-federation/webpack');
 
 module.exports = withModuleFederationPlugin({
-  // Имя контейнера должно совпадать с ключом remotes в host (angularApp)
-  name: 'angularApp',
+  // Имя контейнера теперь creditApp, чтобы хост мог импортировать 'creditApp/router'
+  name: 'creditApp',
   exposes: {
-    './CreditPage': './src/app/pages/credit/credit.ts',
-    './CreditMount': './src/app/mfe/credit-mount.ts',
-    './CreditTransferMount': './src/app/mfe/credit-transfer-mount.ts'
+    './mount': './src/app/mfe/mount.ts',
+    // Новый экспорт только со списком роутов (метаданные для хоста)
+    './router': './src/router.ts'
   },
   shared: {
     ...shareAll({ singleton: true, strictVersion: true, requiredVersion: 'auto' }),
