@@ -8,10 +8,10 @@
             <router-link to="/" class="nav-link">🏠 Главная</router-link>
           </li>
           <li class="nav-item">
-            <button @click="navigateTo('')"  class="nav-link">🥇 Gold</button>
+            <button @click="navigateTo('gold')"  class="nav-link">🥇 Gold</button>
           </li>
           <li class="nav-item">
-            <button @click="navigateTo('transfer')" class="nav-link">💰 Gold Transfer</button>
+            <button @click="navigateTo('deposit')" class="nav-link">💰 Deposit</button>
           </li>
         </ul>
       </nav>
