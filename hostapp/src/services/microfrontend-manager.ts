@@ -327,10 +327,6 @@ export class MicrofrontendManager {
 
     // Показываем и загружаем новый микрофронтенд
     await this.loadMicrofrontend(config, path)
-    // После успешного переключения принудительно отправим текущее положение скролла хоста в активный iframe (если инициализирован ScrollSync)
-    if ((window as any).__mfScrollSyncHostPush) {
-      setTimeout(() => { try { (window as any).__mfScrollSyncHostPush() } catch { } }, 0)
-    }
   }
 
   private async loadMicrofrontend(config: MicrofrontendConfig, path?: string): Promise<void> {
@@ -363,10 +359,6 @@ export class MicrofrontendManager {
       await this.loadIframe(config.iframe, url)
       config.isLoaded = true
       this.sendHostInit(config)
-      // После первичной загрузки отправим скролл
-      if ((window as any).__mfScrollSyncHostPush) {
-        setTimeout(() => { try { (window as any).__mfScrollSyncHostPush() } catch { } }, 50)
-      }
     } else if (path) {
       // Синхронизируем путь с уже загруженным микрофронтендом
       console.log(`[MF Manager] Syncing path ${path} to уже загруженный ${config.id}`)

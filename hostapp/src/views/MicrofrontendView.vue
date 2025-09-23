@@ -1,6 +1,6 @@
 <template>
   <MainLayout>
-    <div :class="['microfrontend-container', { 'auto-height': autoHeight }]">
+    <div :class="['microfrontend-container']">
       <!-- Контейнеры для каждого микрофронтенда -->
       <div
         v-for="mfId in microfrontendIds"
@@ -122,13 +122,6 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   // Менеджер сам очистит ресурсы при необходимости
 })
-
-const autoHeight = computed(() => {
-  const id = currentMfId.value
-  if (!id) return false
-  const cfg = microfrontendManager.getMicrofrontendConfig(id)
-  return !!cfg?.autoHeight
-})
 </script>
 
 <style scoped>
@@ -140,13 +133,6 @@ const autoHeight = computed(() => {
   overflow: hidden;        /* скрываем лишнее */
 }
 
-.microfrontend-container.auto-height {
-  flex: none;
-  display: block;
-  overflow: visible;
-  min-height: 0;
-}
-
 .mf-container {
   position: absolute;
   inset: 0;                /* top:0; right:0; bottom:0; left:0 */
@@ -156,29 +142,15 @@ const autoHeight = computed(() => {
   overflow: hidden;
 }
 
-.microfrontend-container.auto-height .mf-container {
-  position: relative;
-  inset: initial;
-  height: auto;
-  display: none;
-}
-
 .mf-container.active {
   display: block;
 }
-
-.microfrontend-container.auto-height .mf-container.active { display: block; }
 
 .mf-container iframe {      /* гарантия что iframe займёт всё */
   width: 100%;
   height: 100%;
   border: 0;
   display: block;
-}
-
-.microfrontend-container.auto-height .mf-container iframe {
-  height: auto; /* окончательная высота будет выставляться через scroll-sync (inline style) */
-  min-height: 100px;
 }
 
 .loading-indicator {
