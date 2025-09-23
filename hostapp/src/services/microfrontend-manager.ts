@@ -179,7 +179,7 @@ export class MicrofrontendManager {
     try {
       console.log(`[MF Manager] Updating browser history: ${type} to ${normalizedPath}`)
 
-      switch (type) {
+      switch (type as any) {
         case 'navigate':
           window.history.pushState({ mfSource: source }, '', normalizedPath)
           this.lastHistoryPath = normalizedPath
