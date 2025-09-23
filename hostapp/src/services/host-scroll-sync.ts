@@ -11,6 +11,8 @@ export interface HostScrollSyncOptions {
   debug?: boolean
   /** Применять min-height: remoteHeight к body (по умолчанию true) */
   applyRemoteDocumentHeight?: boolean
+  /** Автоматически задавать высоту активному iframe по высоте документа microfrontend (по умолчанию true) */
+  applyIframeHeight?: boolean
 }
 
 interface ScrollSyncMessage {
@@ -63,6 +65,7 @@ export function initHostScrollSync(opts: HostScrollSyncOptions = {}) {
   const deltaThreshold = opts.deltaThreshold ?? 4
   const debug = opts.debug ?? false
   const applyRemoteDocHeight = opts.applyRemoteDocumentHeight !== false
+  const applyIframeHeight = opts.applyIframeHeight !== false
 
   log(debug, 'init')
 
@@ -91,6 +94,20 @@ export function initHostScrollSync(opts: HostScrollSyncOptions = {}) {
       document.body.style.minHeight = data.height + 'px'
     }
 
+    if (applyIframeHeight && typeof data.height === 'number') {
+      const iframe = microfrontendManager.getActiveIframe()
+      if (iframe) {
+        iframe.style.height = data.height + 'px'
+        iframe.style.minHeight = data.height + 'px'
+        iframe.style.display = 'block'
+        // Контейнеру присвоим ту же высоту, если он не в полноэкранном режиме
+        const parent = iframe.parentElement
+        if (parent && !parent.classList.contains('mf-fullscreen')) {
+          parent.style.height = data.height + 'px'
+        }
+      }
+    }
+
     const targetY = Math.max(0, Math.min(data.scrollY || 0, (document.documentElement.scrollHeight - window.innerHeight)))
     const currentY = window.scrollY || window.pageYOffset || 0
     if (Math.abs(targetY - currentY) < 2) return
@@ -116,4 +133,3 @@ export function initHostScrollSync(opts: HostScrollSyncOptions = {}) {
 
   return { dispose: () => removeListeners && removeListeners() }
 }
-

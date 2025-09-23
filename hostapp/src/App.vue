@@ -10,6 +10,10 @@
   box-sizing: border-box;
 }
 
+html, body, #app { /* добавлено для полноэкранной высоты */
+  height: 100%;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',

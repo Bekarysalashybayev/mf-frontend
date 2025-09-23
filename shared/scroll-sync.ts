@@ -28,6 +28,10 @@ interface MicrofrontendScrollSyncOptions {
   deltaThreshold?: number
   debug?: boolean
   hostOrigin?: string
+  /** Отслеживать изменения высоты документа (по умолчанию true) */
+  observeHeight?: boolean
+  /** Интервал fallback (мс) если ResizeObserver недоступен */
+  heightPollIntervalMs?: number
 }
 
 const MESSAGE_TYPE = 'mf-scroll-sync'
@@ -35,6 +39,7 @@ const GLOBAL_FLAG = '__MF_SCROLL_SYNC_INITIALIZED__'
 
 let isApplyingRemote = false
 let lastSentScrollY = -1
+let lastSentHeight = -1
 let removeListeners: (() => void) | null = null
 
 function log(debug: boolean | undefined, ...args: any[]) { if (debug) console.log('[MF ScrollSync]', ...args) }
@@ -64,13 +69,18 @@ export function initScrollSync(options: MicrofrontendScrollSyncOptions) {
   const throttleMs = options.throttleMs ?? 80
   const deltaThreshold = options.deltaThreshold ?? 4
   const debug = options.debug ?? false
+  const observeHeight = options.observeHeight !== false
+  const pollMs = options.heightPollIntervalMs ?? 1000
 
   log(debug, 'Инициализация (microfrontend only)', options.id)
 
   const send = (force = false) => {
     const msg = buildMessage(options.id)
-    if (!force && Math.abs(msg.scrollY - lastSentScrollY) < deltaThreshold) return
+    const scrollDeltaOk = Math.abs(msg.scrollY - lastSentScrollY) >= deltaThreshold
+    const heightChanged = msg.height !== lastSentHeight
+    if (!force && !scrollDeltaOk && !heightChanged) return
     lastSentScrollY = msg.scrollY
+    lastSentHeight = msg.height
     try {
       if (window.parent && window.parent !== window) {
         const targetOrigin = options.hostOrigin || detectHostOrigin() || '*'
@@ -82,6 +92,30 @@ export function initScrollSync(options: MicrofrontendScrollSyncOptions) {
 
   const onScroll = throttle(() => { if (!isApplyingRemote) send(false) }, throttleMs)
   window.addEventListener('scroll', onScroll, { passive: true })
+
+  // Отслеживание высоты документа
+  let resizeObserver: ResizeObserver | null = null
+  let intervalId: any = null
+
+  if (observeHeight) {
+    const scheduleHeightCheck = () => {
+      send(true) // force для фикса высоты
+    }
+    if ('ResizeObserver' in window) {
+      try {
+        resizeObserver = new ResizeObserver(() => scheduleHeightCheck())
+        resizeObserver.observe(document.documentElement)
+        if (document.body) resizeObserver.observe(document.body)
+        log(debug, 'ResizeObserver active for height tracking')
+      } catch (e) { log(debug, 'ResizeObserver error', e) }
+    } else {
+      intervalId = setInterval(() => {
+        const current = document.documentElement.scrollHeight || document.body.scrollHeight || 0
+        if (current !== lastSentHeight) scheduleHeightCheck()
+      }, pollMs)
+      log(debug, 'Polling height fallback every', pollMs, 'ms')
+    }
+  }
 
   function onMessage(ev: MessageEvent) {
     const data = ev.data as Partial<ScrollSyncMessage>
@@ -102,10 +136,13 @@ export function initScrollSync(options: MicrofrontendScrollSyncOptions) {
   removeListeners = () => {
     window.removeEventListener('scroll', onScroll)
     window.removeEventListener('message', onMessage)
+
+    if (resizeObserver) { try { resizeObserver.disconnect() } catch {} }
+    if (intervalId) clearInterval(intervalId)
     ;(window as any)[GLOBAL_FLAG] = false
   }
 
-  // Отправим стартовые метрики через небольшой таймаут
+  // Стартовая отправка (force: чтобы зафиксировать начальную высоту даже без скролла)
   setTimeout(() => send(true), 30)
 
   ;(window as any).__mfScrollSyncDispose = () => removeListeners && removeListeners()

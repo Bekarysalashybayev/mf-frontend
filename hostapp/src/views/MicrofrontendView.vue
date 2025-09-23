@@ -1,6 +1,6 @@
 <template>
   <MainLayout>
-    <div class="microfrontend-container">
+    <div :class="['microfrontend-container', { 'auto-height': autoHeight }]">
       <!-- Контейнеры для каждого микрофронтенда -->
       <div
         v-for="mfId in microfrontendIds"
@@ -122,21 +122,44 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   // Менеджер сам очистит ресурсы при необходимости
 })
+
+const autoHeight = computed(() => {
+  const id = currentMfId.value
+  if (!id) return false
+  const cfg = microfrontendManager.getMicrofrontendConfig(id)
+  return !!cfg?.autoHeight
+})
 </script>
 
 <style scoped>
 .microfrontend-container {
-  width: 100%;
-  height: 100%;
+  flex: 1;                 /* растягиваем внутри .content */
   position: relative;
+  display: flex;
+  min-height: 0;           /* позволяет flex-элементу ужиматься по высоте */
+  overflow: hidden;        /* скрываем лишнее */
+}
+
+.microfrontend-container.auto-height {
+  flex: none;
+  display: block;
+  overflow: visible;
+  min-height: 0;
 }
 
 .mf-container {
+  position: absolute;
+  inset: 0;                /* top:0; right:0; bottom:0; left:0 */
   width: 100%;
   height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
+  display: none;
+  overflow: hidden;
+}
+
+.microfrontend-container.auto-height .mf-container {
+  position: relative;
+  inset: initial;
+  height: auto;
   display: none;
 }
 
@@ -144,13 +167,30 @@ onBeforeUnmount(() => {
   display: block;
 }
 
+.microfrontend-container.auto-height .mf-container.active { display: block; }
+
+.mf-container iframe {      /* гарантия что iframe займёт всё */
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+.microfrontend-container.auto-height .mf-container iframe {
+  height: auto; /* окончательная высота будет выставляться через scroll-sync (inline style) */
+  min-height: 100px;
+}
+
 .loading-indicator {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 400px;
   gap: 16px;
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(2px);
 }
 
 .spinner {
@@ -168,14 +208,16 @@ onBeforeUnmount(() => {
 }
 
 .error-message {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 400px;
   gap: 16px;
   color: #e74c3c;
   text-align: center;
+  background: #fff;
 }
 
 .retry-button {

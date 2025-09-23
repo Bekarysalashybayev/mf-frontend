@@ -10,6 +10,7 @@ export interface MicrofrontendConfig {
   container?: HTMLElement
   iframe?: HTMLIFrameElement
   isLoaded?: boolean
+  autoHeight?: boolean // новый флаг для режима авто-высоты
 }
 
 export interface NavigationMessage {
@@ -47,25 +48,26 @@ export class MicrofrontendManager {
         id: 'firstapp',
         port: 5173,
         basePath: '/bank/gold',
-        routes: ['/bank/gold'] // Включает все подпути /bank/gold/*
+        routes: ['/bank/gold']
       },
       {
         id: 'secondapp',
         port: 5174,
         basePath: '/bank/deposit',
-        routes: ['/bank/deposit'] // Включает все подпути /bank/deposit/*
+        routes: ['/bank/deposit']
       },
       {
         id: 'homeapp',
         port: 5172,
         basePath: '/bank/dashboard',
-        routes: ['/bank/dashboard', '/bank'] // Добавляем /bank для fallback
+        routes: ['/bank/dashboard', '/bank'],
+        autoHeight: true // включаем авто-высоту для домашнего MF
       },
       {
         id: 'angularapp',
         port: 5175,
         basePath: '/bank/credit',
-        routes: ['/bank/credit'] // Маршруты кредитного приложения
+        routes: ['/bank/credit']
       }
     ]
 
