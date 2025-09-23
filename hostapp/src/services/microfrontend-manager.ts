@@ -27,11 +27,18 @@ export class MicrofrontendManager {
   private allowedOrigins: Set<string> = new Set()
   private lastHistoryPath: string | null = null
   private prevPopStatePath: string | null = null
+  // Новый: ссылка на Vue Router
+  private router: any | null = null
 
   constructor() {
     this.initializeConfigs()
     this.setupEventListeners()
     this.setupAllowedOrigins()
+  }
+
+  // Позволяет прикрепить экземпляр роутера
+  public attachRouter(router: any) {
+    this.router = router
   }
 
   private initializeConfigs() {
@@ -139,14 +146,10 @@ export class MicrofrontendManager {
       return
     }
 
-    // Избегаем дублирования если путь уже активен
+    // Избегаем дублирования только если путь уже активен в адресной строке
     const currentHostPath = window.location.pathname + window.location.search + window.location.hash
     if (normalizedPath === currentHostPath) {
       console.log(`[MF Manager] Path already active: ${normalizedPath}`)
-      return
-    }
-    if (type === 'navigate' && this.lastHistoryPath === normalizedPath) {
-      console.log('[MF Manager] Skip duplicate navigate to same path:', normalizedPath)
       return
     }
 
@@ -161,16 +164,22 @@ export class MicrofrontendManager {
       console.log(`[MF Manager] Switching to correct MF: ${expectedMfId} for path: ${normalizedPath}`)
       await this.switchMicrofrontend(expectedMfId, normalizedPath)
     } else if (type === 'navigate') {
-      // Эвристика: внутренняя навигация в рамках одного basePath -> replace вместо push
       const activeConfig = this.configs.get(this.activeId!)
       if (activeConfig) {
         const base = activeConfig.basePath
         if (currentHostPath.startsWith(base) && normalizedPath.startsWith(base)) {
           console.log(`[MF Manager] Internal in-MF navigation (replace instead of push): ${currentHostPath} -> ${normalizedPath}`)
-          window.history.replaceState({ mfSource: source }, '', normalizedPath)
-          this.lastHistoryPath = normalizedPath
-          // Синхронизируем iframe (если уже загружен)
-          this.syncPathToMicrofrontend(source, normalizedPath)
+          try {
+            if (this.router) {
+              await this.router.replace(normalizedPath)
+            } else {
+              window.history.replaceState({ mfSource: source }, '', normalizedPath)
+            }
+            this.lastHistoryPath = normalizedPath
+            this.syncPathToMicrofrontend(source, normalizedPath)
+          } catch (e) {
+            console.error('[MF Manager] Failed internal replace navigation', e)
+          }
           return
         }
       }
@@ -181,11 +190,19 @@ export class MicrofrontendManager {
 
       switch (type as any) {
         case 'navigate':
-          window.history.pushState({ mfSource: source }, '', normalizedPath)
+          if (this.router) {
+            await this.router.push(normalizedPath)
+          } else {
+            window.history.pushState({ mfSource: source }, '', normalizedPath)
+          }
           this.lastHistoryPath = normalizedPath
           break
         case 'replace':
-          window.history.replaceState({ mfSource: source }, '', normalizedPath)
+          if (this.router) {
+            await this.router.replace(normalizedPath)
+          } else {
+            window.history.replaceState({ mfSource: source }, '', normalizedPath)
+          }
           this.lastHistoryPath = normalizedPath
           break
         case 'back':
@@ -200,7 +217,7 @@ export class MicrofrontendManager {
     }
   }
 
-  private handlePopState(event: PopStateEvent) {
+  private handlePopState() {
     const path = window.location.pathname + window.location.search + window.location.hash
     if (this.prevPopStatePath === path) {
       console.log('[MF Manager] Skip duplicate popstate for same path:', path)
@@ -362,15 +379,9 @@ export class MicrofrontendManager {
   }
 
   private normalizePath(path: string): string | null {
-    if (typeof path !== 'string') return null
-
     const trimmed = path.trim()
     if (!trimmed) return null
-
-    // Отбрасываем некорректные пути
     if (/undefined|null/i.test(trimmed)) return null
-
-    // Обрабатываем абсолютные URL
     if (/^https?:\/\//i.test(trimmed)) {
       try {
         const url = new URL(trimmed)
@@ -380,14 +391,7 @@ export class MicrofrontendManager {
         return null
       }
     }
-
-    // Обрабатываем относительные пути
-    let normalized = trimmed
-    if (!normalized.startsWith('/')) {
-      normalized = '/' + normalized
-    }
-
-    return normalized
+    return trimmed.startsWith('/') ? trimmed : '/' + trimmed
   }
 
   private isPathAllowedForMF(path: string, config: MicrofrontendConfig): boolean {

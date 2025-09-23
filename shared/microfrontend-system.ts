@@ -183,20 +183,23 @@ export class MicrofrontendSystem {
 
     this.navigationInProgress = true
 
+    // Сбрасываем lastRouterSyncedPath при host-навигации, чтобы принудительно обновить роутер
+    this.lastRouterSyncedPath = null
+
     try {
-      // Определяем какую часть пути нужно использовать для локальной навигации
+        console.log("// Определяем какую часть пути нужно использовать для локальной навигации")
       const localPath = this.extractLocalPath(hostPath)
 
       if (localPath !== currentPath) {
-        // Используем replace чтобы не создавать дублирующие записи в истории
+          console.log("// Используем replace чтобы не создавать дублирующие записи в истории")
         window.history.replaceState(null, '', localPath)
         this.lastPath = localPath
 
-        // Если используется Vue Router или другой роутер, уведомляем его
+          console.log("// Если используется Vue Router или другой роутер, уведомляем его")
         this.triggerRouterUpdate()
       }
     } finally {
-      // Сбрасываем флаг через небольшую задержку
+        console.log("// Сбрасываем флаг через небольшую задержку")
       setTimeout(() => {
         this.navigationInProgress = false
       }, 100)
@@ -238,12 +241,24 @@ export class MicrofrontendSystem {
    */
   private triggerRouterUpdate(): void {
     const targetPath = window.location.pathname
+
+      console.log(`[${this.microfrontendId}] Triggering router update to:`, targetPath)
+
     if (this.routerRef) {
       try {
+
+          console.log(`[${this.microfrontendId}] Attached router detected, updating...`)
+
         const current = this.routerRef.currentRoute ? this.routerRef.currentRoute.value.fullPath : undefined
+
+          console.log(`[${this.microfrontendId}] Current router path:`, current, 'Target path:', targetPath, 'Last synced:', this.lastRouterSyncedPath, 'Router ref:', this.routerRef)
+
         if (current !== targetPath && this.lastRouterSyncedPath !== targetPath) {
           ;(window as any).__MF_SUPPRESS_ROUTER_LOG = true
           this.routerRef.replace(targetPath)
+
+            console.log(`[${this.microfrontendId}] Updated attached router:`, current, '->', targetPath)
+
           this.lastRouterSyncedPath = targetPath
           // Сбрасываем флаг после микротаска, чтобы пользовательские переходы дальше логировались
           setTimeout(() => {
