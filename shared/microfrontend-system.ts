@@ -213,7 +213,8 @@ export class MicrofrontendSystem {
     const staticMap: Record<string, string[]> = {
       'homeapp': ['/bank/dashboard', '/bank'],
       'firstapp': ['/bank/gold'],
-      'secondapp': ['/bank/deposit']
+      'secondapp': ['/bank/deposit'],
+      'angularapp': ['/bank/credit']
     }
     const bases = this.dynamicBasePaths || staticMap[this.microfrontendId]
     if (!bases) {
@@ -241,31 +242,25 @@ export class MicrofrontendSystem {
    */
   private triggerRouterUpdate(): void {
     const targetPath = window.location.pathname
-
-      console.log(`[${this.microfrontendId}] Triggering router update to:`, targetPath)
+    console.log(`[${this.microfrontendId}] Triggering router update to:`, targetPath)
 
     if (this.routerRef) {
       try {
-
-          console.log(`[${this.microfrontendId}] Attached router detected, updating...`)
-
-        const current = this.routerRef.currentRoute ? this.routerRef.currentRoute.value.fullPath : undefined
-
-          console.log(`[${this.microfrontendId}] Current router path:`, current, 'Target path:', targetPath, 'Last synced:', this.lastRouterSyncedPath, 'Router ref:', this.routerRef)
-
-        if (current !== targetPath && this.lastRouterSyncedPath !== targetPath) {
-          ;(window as any).__MF_SUPPRESS_ROUTER_LOG = true
-          this.routerRef.replace(targetPath)
-
-            console.log(`[${this.microfrontendId}] Updated attached router:`, current, '->', targetPath)
-
-          this.lastRouterSyncedPath = targetPath
-          // Сбрасываем флаг после микротаска, чтобы пользовательские переходы дальше логировались
-          setTimeout(() => {
-            if ((window as any).__MF_SUPPRESS_ROUTER_LOG) {
-              (window as any).__MF_SUPPRESS_ROUTER_LOG = false
-            }
-          }, 0)
+        if (this.routerRef.currentRoute) { // Vue Router
+          const current = this.routerRef.currentRoute ? this.routerRef.currentRoute.value.fullPath : undefined
+          console.log(`[${this.microfrontendId}] Current router path:`, current, 'Target path:', targetPath, 'Last synced:', this.lastRouterSyncedPath)
+          if (current !== targetPath && this.lastRouterSyncedPath !== targetPath) {
+            ;(window as any).__MF_SUPPRESS_ROUTER_LOG = true
+            this.routerRef.replace(targetPath)
+            this.lastRouterSyncedPath = targetPath
+            setTimeout(() => { if ((window as any).__MF_SUPPRESS_ROUTER_LOG) (window as any).__MF_SUPPRESS_ROUTER_LOG = false }, 0)
+          }
+        } else if (typeof this.routerRef.navigateByUrl === 'function') { // Angular Router
+          const current = this.routerRef.url
+          if (current !== targetPath && this.lastRouterSyncedPath !== targetPath) {
+            this.routerRef.navigateByUrl(targetPath, { replaceUrl: true })
+            this.lastRouterSyncedPath = targetPath
+          }
         }
       } catch (error) {
         console.warn(`[${this.microfrontendId}] Failed to update attached router:`, error)
@@ -373,8 +368,16 @@ export class MicrofrontendSystem {
     if (this.handshakeDone) {
       try {
         const path = window.location.pathname
-        if (!router.currentRoute || router.currentRoute.value.fullPath !== path) {
-          router.replace(path)
+        if (router.currentRoute) { // Vue Router
+          const current = router.currentRoute.value.fullPath
+          if (current !== path) {
+            router.replace(path)
+          }
+        } else if (typeof router.navigateByUrl === 'function') { // Angular Router
+          const current = router.url
+          if (current !== path) {
+            router.navigateByUrl(path, { replaceUrl: true })
+          }
         }
         this.lastRouterSyncedPath = path
       } catch (_) {}

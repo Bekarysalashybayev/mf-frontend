@@ -39,7 +39,7 @@ const isLoading = ref(false)
 const error = ref<string | null>(null)
 
 // Получаем список всех микрофронтендов
-const microfrontendIds = ['homeapp', 'firstapp', 'secondapp']
+const microfrontendIds = ['homeapp', 'firstapp', 'secondapp', 'angularapp']
 
 // Текущий активный микрофронтенд
 const currentMfId = ref<string | null>(null)

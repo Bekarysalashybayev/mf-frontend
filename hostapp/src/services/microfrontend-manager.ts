@@ -60,6 +60,12 @@ export class MicrofrontendManager {
         port: 5172,
         basePath: '/bank/dashboard',
         routes: ['/bank/dashboard', '/bank'] // Добавляем /bank для fallback
+      },
+      {
+        id: 'angularapp',
+        port: 5175,
+        basePath: '/bank/credit',
+        routes: ['/bank/credit'] // Маршруты кредитного приложения
       }
     ]
 
@@ -239,18 +245,31 @@ export class MicrofrontendManager {
   public resolveMicrofrontendId(path: string): string | null {
     console.log('[MF Manager] Resolving microfrontend for path:', path)
 
-    // Проверяем точные совпадения первыми, затем префиксы
+    let bestMatch: { id: string; route: string } | null = null
+
     for (const [id, config] of this.configs) {
-      console.log(`[MF Manager] Checking ${id} with routes:`, config.routes)
       for (const route of config.routes) {
-        if (path.startsWith(route)) {
-          console.log(`[MF Manager] Matched ${id} for path ${path} with route ${route}`)
-          return id
+        // Точное совпадение
+        if (path === route) {
+          if (!bestMatch || route.length > bestMatch.route.length) {
+            bestMatch = { id, route }
+          }
+          continue
+        }
+        // Префиксное совпадение (раздел границы) — предотвращаем что /bank/credit будет матчиться /bank, если есть более длинный маршрут
+        if (path.startsWith(route.endsWith('/') ? route : route + '/')) {
+          if (!bestMatch || route.length > bestMatch.route.length) {
+            bestMatch = { id, route }
+          }
         }
       }
     }
 
-    // Дефолтный микрофронтенд для корневых путей
+    if (bestMatch) {
+      console.log(`[MF Manager] Longest route match: ${bestMatch.route} -> ${bestMatch.id}`)
+      return bestMatch.id
+    }
+
     if (path === '/' || path === '/bank') {
       console.log('[MF Manager] Using default homeapp for root path:', path)
       return 'homeapp'

@@ -16,6 +16,9 @@
           <li class="nav-item">
             <router-link to="/bank/deposit" class="nav-link">💰 Deposit</router-link>
           </li>
+          <li class="nav-item">
+            <router-link to="/bank/credit" class="nav-link">💰 Credit</router-link>
+          </li>
         </ul>
       </nav>
     </aside>
