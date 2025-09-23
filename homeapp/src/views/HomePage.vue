@@ -15,7 +15,9 @@
         <div class="service-stats">
           <span class="stat">До 4.2% годовых</span>
         </div>
-        <button class="service-btn">Перейти к депозитам</button>
+        <router-link to="/bank/dashboard/scroll-sync" class="service-btn"
+          >Перейти к scroll-sync</router-link
+        >
       </div>
 
       <div class="service-card">
