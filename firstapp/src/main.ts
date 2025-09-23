@@ -15,7 +15,6 @@ mfSystem.attachRouter(router)
 
 // Инициализация scroll sync для микрофронтенда
 initScrollSync({
-  role: 'microfrontend',
   id: 'firstapp',
   throttleMs: 80,
   deltaThreshold: 4,

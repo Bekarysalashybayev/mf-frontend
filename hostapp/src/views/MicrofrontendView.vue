@@ -59,7 +59,13 @@ async function switchToMicrofrontend(mfId: string | null) {
   }
 
   if (currentMfId.value === mfId) {
-    return // Уже активен
+    // Был ранний return, из-за этого подмаршруты (например scroll-sync) не доходили до iframe
+    try {
+      await microfrontendManager.switchMicrofrontend(mfId, route.fullPath)
+    } catch (err) {
+      console.error('Failed to resync path for same MF:', err)
+    }
+    return
   }
 
   try {
@@ -86,6 +92,16 @@ async function retry() {
 watch(targetMfId, (newMfId) => {
   switchToMicrofrontend(newMfId)
 }, { immediate: false })
+
+watch(() => route.fullPath, (newPath, oldPath) => {
+  if (newPath !== oldPath) {
+    const resolvedId = microfrontendManager.resolveMicrofrontendId(newPath)
+    if (resolvedId && resolvedId === currentMfId.value) {
+      console.log('[MicrofrontendView] fullPath changed within same MF, resync:', newPath)
+      switchToMicrofrontend(resolvedId)
+    }
+  }
+})
 
 onMounted(async () => {
   try {

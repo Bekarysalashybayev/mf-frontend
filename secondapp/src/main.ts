@@ -14,7 +14,6 @@ app.use(router)
 mfSystem.attachRouter(router)
 
 initScrollSync({
-  role: 'microfrontend',
   id: 'secondapp',
   throttleMs: 80,
   deltaThreshold: 4,

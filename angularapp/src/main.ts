@@ -12,7 +12,6 @@ platformBrowserDynamic().bootstrapModule(AppModule).then(m => {
 
   // Инициализация scroll sync
   initScrollSync({
-    role: 'microfrontend',
     id: 'angularapp',
     throttleMs: 80,
     deltaThreshold: 4,
