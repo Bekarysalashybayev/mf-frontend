@@ -89,13 +89,31 @@ export class MicrofrontendManager {
     window.addEventListener('popstate', this.handlePopState.bind(this))
   }
 
+  private isNavigationMessage(payload: any): payload is NavigationMessage {
+    if (!payload || typeof payload !== 'object') return false
+    if ((payload as any).__mfScrollSync && payload.type === 'mf-scroll-sync') return false // игнорируем scroll-sync
+    const t = (payload as any).type
+    return t === 'navigate' || t === 'back' || t === 'forward' || t === 'replace'
+  }
+
   private handleMessage(event: MessageEvent) {
     if (!this.allowedOrigins.has(event.origin)) {
       return
     }
 
-    const message = event.data as NavigationMessage
+    const payload = event.data
+    if (!this.isNavigationMessage(payload)) {
+      return // не наше сообщение (например scroll-sync или другое служебное)
+    }
+
+    const message = payload as NavigationMessage
     if (!message.source || !this.configs.has(message.source)) {
+      return
+    }
+
+    // Доп. защита: если тип требует path, но path не передан
+    if ((message.type === 'navigate' || message.type === 'replace') && !message.path) {
+      console.warn('[MF Manager] Skip navigation message without path:', message)
       return
     }
 
@@ -132,6 +150,11 @@ export class MicrofrontendManager {
     const { type, path, source } = message
 
     console.log(`[MF Manager] Processing navigation from ${source}: ${type} to ${path}`)
+
+    if (!path && (type === 'navigate' || type === 'replace')) {
+      console.warn('[MF Manager] Navigation message without path ignored')
+      return
+    }
 
     if (type === 'back' || type === 'forward') {
       console.log('[MF Manager] Ignoring back/forward message from MF (handled by browser)')
@@ -302,6 +325,10 @@ export class MicrofrontendManager {
 
     // Показываем и загружаем новый микрофронтенд
     await this.loadMicrofrontend(config, path)
+    // После успешного переключения принудительно отправим текущее положение скролла хоста в активный iframe (если инициализирован ScrollSync)
+    if ((window as any).__mfScrollSyncHostPush) {
+      setTimeout(() => { try { (window as any).__mfScrollSyncHostPush() } catch { } }, 0)
+    }
   }
 
   private async loadMicrofrontend(config: MicrofrontendConfig, path?: string): Promise<void> {
@@ -334,6 +361,10 @@ export class MicrofrontendManager {
       await this.loadIframe(config.iframe, url)
       config.isLoaded = true
       this.sendHostInit(config)
+      // После первичной загрузки отправим скролл
+      if ((window as any).__mfScrollSyncHostPush) {
+        setTimeout(() => { try { (window as any).__mfScrollSyncHostPush() } catch { } }, 50)
+      }
     } else if (path) {
       // Синхронизируем путь с уже загруженным микрофронтендом
       console.log(`[MF Manager] Syncing path ${path} to уже загруженный ${config.id}`)
@@ -439,6 +470,12 @@ export class MicrofrontendManager {
 
   public getMicrofrontendConfig(id: string): MicrofrontendConfig | undefined {
     return this.configs.get(id)
+  }
+
+  public getActiveIframe(): HTMLIFrameElement | null {
+    if (!this.activeId) return null
+    const cfg = this.configs.get(this.activeId)
+    return cfg?.iframe || null
   }
 
   public dispose() {

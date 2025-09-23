@@ -11,6 +11,9 @@
             <router-link to="/bank/dashboard" class="nav-link">🏠 Главная</router-link>
           </li>
           <li class="nav-item">
+            <router-link to="/bank/dashboard/scroll-sync" class="nav-link">🧪 Scroll Sync Demo</router-link>
+          </li>
+          <li class="nav-item">
             <router-link to="/bank/gold"  class="nav-link">🥇 Gold</router-link>
           </li>
           <li class="nav-item">

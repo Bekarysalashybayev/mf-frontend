@@ -1,3 +1,105 @@
-/* Global styles for angularapp microfrontend */
-html, body { margin:0; padding:0; font:14px/1.4 system-ui, sans-serif; }
+/* Design tokens */
+:root {
+  --font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif;
+  --color-bg: #ffffff;
+  --color-bg-alt: #f5f7fa;
+  --color-border: #dcdfe4;
+  --color-border-strong: #b0b8c3;
+  --color-text: #222;
+  --color-text-muted: #555;
+  --color-primary: #0a53b0;
+  --color-primary-accent: #0366d6;
+  --color-primary-hover: #084b9b;
+  --color-focus: #ffbf47;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.08);
+  --shadow-md: 0 2px 4px rgba(0,0,0,.12);
+  --transition-fast: .15s cubic-bezier(.4,0,.2,1);
+  --container-max: 960px;
+  --stack-gap: 12px; /* default gap for .stack */
+  --inline-gap: 8px; /* default gap for .inline */
+}
 
+html, body { margin:0; padding:0; font:14px/1.5 var(--font-family); background: var(--color-bg); color: var(--color-text); -webkit-font-smoothing: antialiased; }
+
+/* Scrollbar (webkit) */
+body::-webkit-scrollbar { width: 10px; }
+body::-webkit-scrollbar-track { background: var(--color-bg-alt); }
+body::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 6px; }
+body::-webkit-scrollbar-thumb:hover { background: var(--color-border-strong); }
+
+/* Typography */
+h1,h2,h3,h4 { font-weight:600; line-height:1.25; margin:0 0 .6em; }
+p { margin:0 0 1em; }
+ul { margin:0 0 1em 1.2em; padding:0; }
+li { margin:.25em 0; }
+small { font-size: .85em; color: var(--color-text-muted); }
+
+/* Links */
+a { color: var(--color-primary-accent); text-decoration: none; transition: color var(--transition-fast); }
+a:hover { color: var(--color-primary); }
+a:focus-visible { outline: 2px solid var(--color-focus); outline-offset:2px; border-radius:2px; }
+
+/* Layout helpers */
+.container { width:100%; max-width: var(--container-max); margin:0 auto; padding: 0 16px; }
+.stack { display:flex; flex-direction:column; gap: 12px; }
+.inline { display:flex; align-items:center; gap: 8px; }
+.spacer { flex:1; }
+.muted { color: var(--color-text-muted); }
+
+/* App specific layout */
+.layout { padding:16px; background: var(--color-bg); }
+.layout .title { font-size:20px; margin:0 0 16px; letter-spacing:.5px; }
+
+/* Navigation */
+.nav { display:flex; flex-wrap:wrap; gap:14px; margin:0 0 20px; }
+.nav a { position:relative; padding:6px 10px 8px; border-radius: var(--radius-sm); font-weight:500; color: var(--color-primary-accent); }
+.nav a::after { content:""; position:absolute; left:10px; right:10px; bottom:4px; height:2px; background:transparent; border-radius:2px; transition: background var(--transition-fast), transform var(--transition-fast); transform:scaleX(.4); }
+.nav a:hover::after { background: var(--color-primary-accent); transform:scaleX(1); }
+.nav a.active { background: var(--color-bg-alt); color: var(--color-primary); }
+.nav a.active::after { background: var(--color-primary); transform:scaleX(1); }
+
+/* Card */
+.card { background: var(--color-bg-alt); border:1px solid var(--color-border); border-radius: var(--radius-md); padding:16px 18px; box-shadow: var(--shadow-sm); position:relative; overflow:hidden; }
+.card + .card { margin-top:16px; }
+.card:hover { box-shadow: var(--shadow-md); }
+.card h3 { margin-top:0; font-size:16px; }
+
+/* Button */
+button, .btn { --btn-bg: var(--color-primary); --btn-bg-hover: var(--color-primary-hover); --btn-color:#fff; --btn-border: var(--color-primary); cursor:pointer; font:500 14px/1.2 var(--font-family); padding:8px 14px 9px; border-radius: var(--radius-sm); border:1px solid var(--btn-border); background: var(--btn-bg); color: var(--btn-color); transition: background var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast); }
+button:hover, .btn:hover { background: var(--btn-bg-hover); }
+button:active, .btn:active { transform: translateY(1px); }
+button:focus-visible, .btn:focus-visible { outline:2px solid var(--color-focus); outline-offset:2px; }
+button:disabled { opacity:.55; cursor:not-allowed; }
+
+/* Lists inside card */
+.card ul { list-style:disc; margin-left:1.1em; }
+.card a { font-weight:500; }
+
+/* Animations / micro-interactions */
+.fade-in { animation: fade-in .4s ease; }
+@keyframes fade-in { from { opacity:0; translate:0 4px; } to { opacity:1; translate:0 0; } }
+
+/* Utilities for spacing (small set) */
+.mt-0 { margin-top:0 !important; } .mt-1 { margin-top:4px !important; } .mt-2 { margin-top:8px !important; } .mt-3 { margin-top:12px !important; } .mt-4 { margin-top:16px !important; }
+.mb-0 { margin-bottom:0 !important; } .mb-1 { margin-bottom:4px !important; } .mb-2 { margin-bottom:8px !important; } .mb-3 { margin-bottom:12px !important; } .mb-4 { margin-bottom:16px !important; }
+
+/* Responsive tweaks */
+@media (max-width: 680px) {
+  .layout { padding:12px; }
+  .nav { gap:8px; }
+  .nav a { padding:6px 8px 8px; }
+  .card { padding:14px 14px; }
+}
+
+/* Dark theme (opt-in via .theme-dark on a wrapper) */
+.theme-dark { --color-bg:#181a1f; --color-bg-alt:#22262c; --color-text:#e4e7eb; --color-text-muted:#9aa1ab; --color-border:#343a42; --color-border-strong:#49515c; }
+.theme-dark a { color:#5aa5ff; }
+.theme-dark a:hover { color:#8bc2ff; }
+.theme-dark .card { background: var(--color-bg-alt); }
+.theme-dark .nav a.active { background:#2d333b; }
+
+/* Focus outline reset for elements not restyled */
+:focus-visible { outline:2px solid var(--color-focus); outline-offset:2px; }

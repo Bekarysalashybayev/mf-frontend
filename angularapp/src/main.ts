@@ -3,11 +3,21 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic'
 import { AppModule } from './app/app.module'
 import { mfSystem } from '../setup-mf'
 import { Router, NavigationEnd } from '@angular/router'
+import { initScrollSync } from '../../shared/scroll-sync'
 
 platformBrowserDynamic().bootstrapModule(AppModule).then(m => {
   const router = m.injector.get(Router)
   // Привязываем Angular Router к системе микрофронтенда
   mfSystem.attachRouter(router)
+
+  // Инициализация scroll sync
+  initScrollSync({
+    role: 'microfrontend',
+    id: 'angularapp',
+    throttleMs: 80,
+    deltaThreshold: 4,
+    debug: false
+  })
 
   router.events.subscribe(ev => {
     if (ev instanceof NavigationEnd) {

@@ -6,7 +6,8 @@
   "scripts": {
     "start": "ng serve angularapp --port 5175 --host 0.0.0.0",
     "build": "ng build angularapp",
-    "build:prod": "ng build angularapp --configuration production"
+    "build:prod": "ng build angularapp --configuration production",
+    "preview": "npx http-server ./dist/angularapp -p 5175"
   },
   "dependencies": {
     "@angular/animations": "17.3.0",

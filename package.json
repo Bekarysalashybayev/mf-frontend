@@ -1,0 +1,23 @@
+{
+  "name": "micro-frontend-root",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"cd hostapp && pnpm run dev\" \"cd homeapp && pnpm run dev\" \"cd firstapp && pnpm run dev\" \"cd secondapp && pnpm run dev\" \"cd angularapp && pnpm run start\"",
+    "preview": "concurrently \"cd hostapp && pnpm run preview\" \"cd homeapp && pnpm run preview\" \"cd firstapp && pnpm run preview\" \"cd secondapp && pnpm run preview\"",
+    "build": "npm-run-all2 --parallel build:hostapp build:homeapp build:firstapp build:secondapp",
+    "install-all": "pnpm install",
+    "build:hostapp": "cd hostapp && pnpm run build",
+    "build:homeapp": "cd homeapp && pnpm run build",
+    "build:firstapp": "cd firstapp && pnpm run build",
+    "build:secondapp": "cd secondapp && pnpm run build",
+    "preview:hostapp": "cd hostapp && pnpm run preview",
+    "preview:homeapp": "cd homeapp && pnpm run preview",
+    "preview:firstapp": "cd firstapp && pnpm run preview",
+    "preview:secondapp": "cd secondapp && pnpm run preview"
+  },
+  "devDependencies": {
+    "pnpm": ">=8.0.0",
+    "concurrently": "^8.2.2",
+    "npm-run-all2": "^8.0.4"
+  }
+}
