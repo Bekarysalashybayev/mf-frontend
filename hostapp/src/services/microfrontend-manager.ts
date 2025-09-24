@@ -33,6 +33,7 @@ export class MicrofrontendManager {
   private prevPopStatePath: string | null = null
   // Новый: ссылка на Vue Router
   private router: any | null = null
+  private heightWatchdogs: Map<string, number[]> = new Map()
 
   constructor() {
     this.initializeConfigs()
@@ -394,9 +395,84 @@ export class MicrofrontendManager {
     })
   }
 
+  private computeFallbackHeight(mfId: string): number {
+    // Простейшая эвристика: доступная высота окна минус фиксированный запас под header/sidebar
+    const viewport = window.innerHeight || 800
+    const reserved = 140
+    const minBase = 300
+    return Math.max(minBase, viewport - reserved)
+  }
+
+  private resetHeight(mfId: string) {
+    const cfg = this.configs.get(mfId)
+    if (!cfg?.iframe) return
+    if (cfg.autoHeight) {
+      const fallback = this.computeFallbackHeight(mfId)
+      cfg.lastHeight = undefined
+      if (cfg.container) {
+        cfg.container.style.height = fallback + 'px'
+        cfg.container.setAttribute('data-fallback-height', String(fallback))
+      }
+      cfg.iframe.style.height = fallback + 'px'
+      cfg.iframe.setAttribute('data-height-reset', 'true')
+      cfg.iframe.setAttribute('data-fallback-height', String(fallback))
+      this.startHeightWatchdog(mfId)
+    }
+  }
+
+  private startHeightWatchdog(mfId: string) {
+    const clear = () => {
+      const timers = this.heightWatchdogs.get(mfId)
+      if (timers) timers.forEach(id => clearTimeout(id))
+      this.heightWatchdogs.delete(mfId)
+    }
+    clear()
+    const cfg = this.configs.get(mfId)
+    if (!cfg || !cfg.autoHeight) return
+    const timeouts: number[] = []
+    const schedule = (ms: number, fn: () => void) => {
+      timeouts.push(window.setTimeout(fn, ms))
+    }
+    // Эскалация: пинги + fallback
+    schedule(300, () => { if (!cfg.lastHeight) this.pingHeight(mfId) })
+    schedule(700, () => { if (!cfg.lastHeight) this.pingHeight(mfId) })
+    schedule(1300, () => { if (!cfg.lastHeight) this.pingHeight(mfId) })
+    schedule(2000, () => {
+      if (!cfg.lastHeight) {
+        // Fallback высота если ничего не пришло
+        const fallback = 800
+        cfg.iframe!.style.height = fallback + 'px'
+        if (cfg.container) cfg.container.style.height = fallback + 'px'
+        cfg.iframe!.setAttribute('data-height-fallback', String(fallback))
+        this.pingHeight(mfId)
+      }
+    })
+    this.heightWatchdogs.set(mfId, timeouts)
+  }
+
+  private pingHeight(mfId: string, force = false) {
+    const cfg = this.configs.get(mfId)
+    if (!cfg?.iframe) return
+    try {
+      const origin = `http://localhost:${cfg.port}`
+      const win = cfg.iframe.contentWindow
+      if (!win) return
+      const baseDelays = [0, 60, 140, 260, 420, 800, 1200]
+      const delays = force ? [0, 40, 100, 200, 350, 600, 1000, 1500] : baseDelays
+      delays.forEach(d => setTimeout(() => {
+        try { win.postMessage({ type: force ? 'mf-height-force' : 'mf-height-ping' }, origin) } catch {}
+      }, d))
+    } catch (e) {
+      console.warn('[MF Manager] Failed to ping height', e)
+    }
+  }
+
   private syncPathToMicrofrontend(mfId: string, path: string) {
     const config = this.configs.get(mfId)
     if (!config?.iframe) return
+
+    // Сбрасываем высоту перед новой навигацией чтобы не зависала старая большая
+    this.resetHeight(mfId)
 
     try {
       config.iframe.contentWindow?.postMessage({
@@ -404,6 +480,8 @@ export class MicrofrontendManager {
         path: path,
         source: 'host'
       }, `http://localhost:${config.port}`)
+      // Первые запросы – force для ускорения
+      this.pingHeight(mfId, true)
     } catch (error) {
       console.error('[MF Manager] Failed to sync path:', error)
     }
@@ -415,6 +493,8 @@ export class MicrofrontendManager {
         const msg = { type: 'host-init', hostOrigin: window.location.origin, basePath: config.basePath }
         config.iframe.contentWindow.postMessage(msg, `http://localhost:${config.port}`)
         console.log('[MF Manager] Sent host-init to', config.id, msg)
+        this.resetHeight(config.id)
+        this.pingHeight(config.id, true)
       }
     } catch (e) {
       console.warn('[MF Manager] Failed to send host-init', e)
@@ -479,18 +559,20 @@ export class MicrofrontendManager {
     if (!cfg) return
     if (!cfg.iframe) return
 
-    // Если включён режим авто-высоты или хотим глобально поддерживать — обновляем
     if (cfg.autoHeight) {
-      // Минимальная защита от дерганья: если разница <2px игнорируем
-      if (cfg.lastHeight && Math.abs(cfg.lastHeight - msg.height) < 2) return
-      cfg.lastHeight = msg.height
-      // Применяем высоту
-      cfg.iframe.style.height = msg.height + 'px'
-      if (cfg.container) {
-        // Контейнер должен растянуться
-        cfg.container.style.height = msg.height + 'px'
+      // Очистка watchdog при первом валидном апдейте
+      if (!cfg.lastHeight) {
+        const timers = this.heightWatchdogs.get(msg.source)
+        if (timers) timers.forEach(id => clearTimeout(id))
+        this.heightWatchdogs.delete(msg.source)
       }
-      // Добавим data-атрибуты для отладки
+      if (cfg.lastHeight && Math.abs(cfg.lastHeight - msg.height) < 1) {
+        return
+      }
+      cfg.lastHeight = msg.height
+      cfg.iframe.style.height = msg.height + 'px'
+      if (cfg.container) cfg.container.style.height = msg.height + 'px'
+      cfg.iframe.removeAttribute('data-height-reset')
       cfg.iframe.setAttribute('data-height', String(msg.height))
     }
   }

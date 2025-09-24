@@ -125,6 +125,25 @@ export function setupHeightSync(options: HeightSyncOptions): HeightSyncControlle
   setTimeout(scheduleMeasure, 100)
   setTimeout(scheduleMeasure, 500)
 
+  // Дополнительные первичные замеры (агрессивная серия)
+  ;[50,120,250,400,700,1100,1600].forEach(ms => setTimeout(scheduleMeasure, ms))
+
+  const onLoad = () => { scheduleMeasure(); setTimeout(scheduleMeasure, 60); setTimeout(scheduleMeasure, 300) }
+  const onDomReady = () => { scheduleMeasure(); setTimeout(scheduleMeasure, 120) }
+
+  if (document.readyState === 'complete') {
+    onLoad()
+  } else {
+    window.addEventListener('load', onLoad, { once: true })
+  }
+  if (document.readyState === 'interactive' || document.readyState === 'complete') {
+    onDomReady()
+  } else {
+    document.addEventListener('DOMContentLoaded', onDomReady, { once: true })
+  }
+  window.addEventListener('resize', () => scheduleMeasure())
+  window.addEventListener('orientationchange', () => scheduleMeasure())
+
   const controller: HeightSyncController = {
     stop() {
       disposed = true
@@ -139,6 +158,21 @@ export function setupHeightSync(options: HeightSyncOptions): HeightSyncControlle
 
   // Экспорт для отладки
   ;(window as any).__MF_HEIGHT_SYNC__ = controller
+
+  window.addEventListener('message', (e: MessageEvent) => {
+    if (!e.data) return
+    if (e.data.type === 'mf-height-ping' || e.data.type === 'mf-height-force') {
+      const aggressive = e.data.type === 'mf-height-force'
+      scheduleMeasure()
+      setTimeout(scheduleMeasure, 40)
+      setTimeout(scheduleMeasure, 120)
+      setTimeout(scheduleMeasure, 250)
+      if (aggressive) {
+        setTimeout(scheduleMeasure, 500)
+        setTimeout(scheduleMeasure, 900)
+      }
+    }
+  })
 
   return controller
 }

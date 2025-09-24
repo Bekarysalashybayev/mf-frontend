@@ -41,8 +41,7 @@
         <h3>New Deposit</h3>
         <p>Start earning with our competitive rates</p>
         <div class="actions">
-          <button class="btn btn-primary">Open Deposit</button>
-          <button class="btn btn-secondary">View Rates</button>
+          <router-link class="btn btn-transfer" to="/bank/deposit/demo">Demo Scroll</router-link>
           <router-link class="btn btn-transfer" to="/bank/deposit/transfer">Transfer Funds</router-link>
         </div>
       </div>
