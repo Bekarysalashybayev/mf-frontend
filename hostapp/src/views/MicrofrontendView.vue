@@ -1,24 +1,20 @@
 <template>
   <MainLayout>
     <div :class="['microfrontend-container']">
-      <!-- Контейнеры для каждого микрофронтенда -->
       <div
         v-for="mfId in microfrontendIds"
         :key="mfId"
         :id="`mf-container-${mfId}`"
         class="mf-container"
         :class="{ active: currentMfId === mfId }"
-      >
-        <!-- Iframe будет создан программно через MicrofrontendManager -->
-      </div>
+        :data-auto-height="true"
+      ></div>
 
-      <!-- Индикатор загрузки -->
       <div v-if="isLoading" class="loading-indicator">
         <div class="spinner"></div>
         <p>Загрузка микрофронтенда...</p>
       </div>
 
-      <!-- Сообщение об ошибке -->
       <div v-if="error" class="error-message">
         <h3>Ошибка загрузки</h3>
         <p>{{ error }}</p>
@@ -126,83 +122,27 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .microfrontend-container {
-  flex: 1;                 /* растягиваем внутри .content */
   position: relative;
-  display: flex;
-  min-height: 0;           /* позволяет flex-элементу ужиматься по высоте */
-  overflow: hidden;        /* скрываем лишнее */
+  display: block;
+  overflow: visible; /* позволяем странице расти и скроллиться хосту */
 }
 
 .mf-container {
-  position: absolute;
-  inset: 0;                /* top:0; right:0; bottom:0; left:0 */
   width: 100%;
-  height: 100%;
   display: none;
-  overflow: hidden;
+  position: relative;
+  overflow: visible;
 }
 
-.mf-container.active {
-  display: block;
-}
+.mf-container.active { display: block; }
 
-.mf-container iframe {      /* гарантия что iframe займёт всё */
-  width: 100%;
-  height: 100%;
-  border: 0;
-  display: block;
-}
+.mf-container[data-auto-height='true'] { height: auto; }
+.mf-container[data-auto-height='true'] iframe { width:100%; border:0; display:block; height:auto; }
 
-.loading-indicator {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  background: rgba(255,255,255,0.6);
-  backdrop-filter: blur(2px);
-}
-
-.spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.error-message {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  color: #e74c3c;
-  text-align: center;
-  background: #fff;
-}
-
-.retry-button {
-  padding: 8px 16px;
-  background-color: #3498db;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.retry-button:hover {
-  background-color: #2980b9;
-}
+.loading-indicator { position: absolute; inset: 0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; background:rgba(255,255,255,0.6); backdrop-filter:blur(2px); }
+.spinner { width:32px; height:32px; border:3px solid #f3f3f3; border-top:3px solid #3498db; border-radius:50%; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
+.error-message { position: absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; color:#e74c3c; text-align:center; background:#fff; }
+.retry-button { padding:8px 16px; background:#3498db; color:#fff; border:0; border-radius:4px; cursor:pointer; font-size:14px; }
+.retry-button:hover { background:#2980b9; }
 </style>

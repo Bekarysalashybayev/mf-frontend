@@ -2,6 +2,8 @@
  * Централизованный менеджер микрофронтендов
  * Управляет загрузкой, синхронизацией истории и коммуникацией с MF
  */
+import { isHeightSyncMessage, type HeightSyncMessage } from '../../../shared/height-sync-system'
+
 export interface MicrofrontendConfig {
   id: string
   port: number
@@ -11,6 +13,7 @@ export interface MicrofrontendConfig {
   iframe?: HTMLIFrameElement
   isLoaded?: boolean
   autoHeight?: boolean // новый флаг для режима авто-высоты
+  lastHeight?: number // запоминаем последнюю высоту
 }
 
 export interface NavigationMessage {
@@ -44,36 +47,12 @@ export class MicrofrontendManager {
 
   private initializeConfigs() {
     const configs: MicrofrontendConfig[] = [
-      {
-        id: 'firstapp',
-        port: 5173,
-        basePath: '/bank/gold',
-        routes: ['/bank/gold']
-      },
-      {
-        id: 'secondapp',
-        port: 5174,
-        basePath: '/bank/deposit',
-        routes: ['/bank/deposit']
-      },
-      {
-        id: 'homeapp',
-        port: 5172,
-        basePath: '/bank/dashboard',
-        routes: ['/bank/dashboard', '/bank'],
-        autoHeight: true // включаем авто-высоту для домашнего MF
-      },
-      {
-        id: 'angularapp',
-        port: 5175,
-        basePath: '/bank/credit',
-        routes: ['/bank/credit']
-      }
+      { id: 'firstapp', port: 5173, basePath: '/bank/gold', routes: ['/bank/gold'], autoHeight: true },
+      { id: 'secondapp', port: 5174, basePath: '/bank/deposit', routes: ['/bank/deposit'], autoHeight: true },
+      { id: 'homeapp', port: 5172, basePath: '/bank/dashboard', routes: ['/bank/dashboard', '/bank'], autoHeight: true },
+      { id: 'angularapp', port: 5175, basePath: '/bank/credit', routes: ['/bank/credit'], autoHeight: true }
     ]
-
-    configs.forEach(config => {
-      this.configs.set(config.id, config)
-    })
+    configs.forEach(config => { this.configs.set(config.id, config) })
   }
 
   private setupAllowedOrigins() {
@@ -99,6 +78,12 @@ export class MicrofrontendManager {
   }
 
   private handleMessage(event: MessageEvent) {
+    // Сначала проверим сообщения синхронизации высоты
+    if (isHeightSyncMessage(event.data)) {
+      this.handleHeightMessage(event.data as HeightSyncMessage)
+      return
+    }
+
     if (!this.allowedOrigins.has(event.origin)) {
       return
     }
@@ -319,6 +304,9 @@ export class MicrofrontendManager {
       if (currentConfig?.container) {
         console.log(`[MF Manager] Hiding current MF: ${this.activeId}`)
         currentConfig.container.style.display = 'none'
+        if (currentConfig.autoHeight) {
+          currentConfig.container.style.height = ''
+        }
       }
     }
 
@@ -339,7 +327,9 @@ export class MicrofrontendManager {
 
     // Показываем контейнер
     config.container.style.display = 'block'
-    console.log(`[MF Manager] Container shown for: ${config.id}`)
+    if (config.autoHeight && config.lastHeight) {
+      config.container.style.height = config.lastHeight + 'px'
+    }
 
     // Создаем или переиспользуем iframe
     if (!config.iframe) {
@@ -369,9 +359,18 @@ export class MicrofrontendManager {
   private createIframe(config: MicrofrontendConfig): HTMLIFrameElement {
     const iframe = document.createElement('iframe')
     iframe.style.width = '100%'
-    iframe.style.height = '100%'
+    // Для autoHeight изначально ставим минимальную высоту, далее будем обновлять
+    if (config.autoHeight) {
+      iframe.style.height = '10px'
+    } else {
+      iframe.style.height = '100%'
+    }
     iframe.style.border = 'none'
     iframe.title = config.id
+    iframe.setAttribute('data-mfid', config.id)
+    if (config.autoHeight) {
+      iframe.setAttribute('data-auto-height', 'true')
+    }
     return iframe
   }
 
@@ -456,6 +455,9 @@ export class MicrofrontendManager {
     }
 
     config.container = container
+    if (config.autoHeight) {
+      container.setAttribute('data-auto-height', 'true')
+    }
   }
 
   public getCurrentMicrofrontendId(): string | null {
@@ -470,6 +472,27 @@ export class MicrofrontendManager {
     if (!this.activeId) return null
     const cfg = this.configs.get(this.activeId)
     return cfg?.iframe || null
+  }
+
+  private handleHeightMessage(msg: HeightSyncMessage) {
+    const cfg = this.configs.get(msg.source)
+    if (!cfg) return
+    if (!cfg.iframe) return
+
+    // Если включён режим авто-высоты или хотим глобально поддерживать — обновляем
+    if (cfg.autoHeight) {
+      // Минимальная защита от дерганья: если разница <2px игнорируем
+      if (cfg.lastHeight && Math.abs(cfg.lastHeight - msg.height) < 2) return
+      cfg.lastHeight = msg.height
+      // Применяем высоту
+      cfg.iframe.style.height = msg.height + 'px'
+      if (cfg.container) {
+        // Контейнер должен растянуться
+        cfg.container.style.height = msg.height + 'px'
+      }
+      // Добавим data-атрибуты для отладки
+      cfg.iframe.setAttribute('data-height', String(msg.height))
+    }
   }
 
   public dispose() {
